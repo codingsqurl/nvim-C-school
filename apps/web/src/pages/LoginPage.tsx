@@ -7,8 +7,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+
+  if (isAuthenticated) {
+    const hasProgram = localStorage.getItem('program')
+    navigate(hasProgram ? '/' : '/age-group', { replace: true })
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

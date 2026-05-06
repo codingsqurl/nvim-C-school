@@ -9,6 +9,7 @@ import CoursesPage from './pages/CoursesPage'
 import NotesPage from './pages/NotesPage'
 import ProgressPage from './pages/ProgressPage'
 import SearchPage from './pages/SearchPage'
+import StarTermPage from './pages/StarTermPage'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           }>
             <Route index element={<HomePage />} />
             <Route path="courses" element={<CoursesPage />} />
+            <Route path="terminal" element={<StarTermPage />} />
             <Route path="notes" element={<NotesPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="search" element={<SearchPage />} />

@@ -41,13 +41,19 @@ export default function HomePage() {
       {/* Main Actions */}
       <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
         <Link 
-          to="/courses" 
+          to={program === 'KinderRoot' ? '/courses' : '/terminal'} 
           className="p-6 rounded-2xl transition-all hover:scale-105"
           style={{ backgroundColor: '#4CAF50', color: '#fff' }}
         >
-          <div className="text-4xl mb-2">🎯</div>
-          <div className="font-bold">Start Quest</div>
-          <div className="text-sm opacity-80">Begin your journey</div>
+          <div className="text-4xl mb-2">
+            {program === 'KinderRoot' ? '🎯' : '⬛'}
+          </div>
+          <div className="font-bold">
+            {program === 'KinderRoot' ? 'Star Quest' : 'Terminal'}
+          </div>
+          <div className="text-sm opacity-80">
+            {program === 'KinderRoot' ? "Begin your journey" : "Start learning"}
+          </div>
         </Link>
         <Link 
           to="/progress" 
