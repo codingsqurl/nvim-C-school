@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>c-school // terminal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1b26;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #terminal {
+            width: 100%;
+            height: 100%;
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 22px;
+            background: rgba(20,20,24,0.9);
+            color: #606068;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 16px;
+            z-index: 100;
+        }
+        .status-bar .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+        }
+        .status-bar .dot.connected { background: #27ca40; }
+        .status-bar .dot.disconnected { background: #ff5f56; }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+    <div class="status-bar">
+        <span class="dot disconnected" id="status-dot"></span>
+        <span id="status-text">disconnected</span>
+        <span style="margin-left:auto;">c-school terminal v2</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.js"></script>
+<script>
+const WS_BASE = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host;
+
+const term = new Terminal({
+    cursorBlink: true,
+    cursorStyle: 'bar',
+    fontSize: 13,
+    fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+    theme: {
+        background: '#1a1b26',
+        foreground: '#a9b1d6',
+        cursor: '#7aa2f7',
+        selectionBackground: '#283457',
+    },
+    allowProposedApi: true,
+});
+
+const fitAddon = new FitAddon.FitAddon();
+term.loadAddon(fitAddon);
+term.loadAddon(new WebLinksAddon.WebLinksAddon());
+
+term.open(document.getElementById('terminal'));
+fitAddon.fit();
+
+let ws = null;
+let sessionId = null;
+
+function setStatus(connected, text) {
+    document.getElementById('status-dot').className = 'dot ' + (connected ? 'connected' : 'disconnected');
+    document.getElementById('status-text').textContent = text;
+}
+
+async function connect() {
+    setStatus(false, 'creating session...');
+
+    try {
+        const res = await fetch('/api/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+        const data = await res.json();
+        sessionId = data.id;
+    } catch (e) {
+        setStatus(false, 'backend offline');
+        term.writeln('\r\n\x1b[31mBackend offline. Run \'cargo run\' in cschool-term/\x1b[0m\r\n');
+        return;
+    }
+
+    setStatus(false, 'connecting...');
+    ws = new WebSocket(`${WS_BASE}/api/ws/${sessionId}`);
+    ws.binaryType = 'arraybuffer';
+
+    ws.onopen = () => {
+        setStatus(true, 'connected');
+        term.clear();
+        const dims = { cols: term.cols, rows: term.rows };
+        ws.send(JSON.stringify(dims));
+    };
+
+    ws.onmessage = (ev) => {
+        if (ev.data instanceof ArrayBuffer) {
+            term.write(new Uint8Array(ev.data));
+        } else if (typeof ev.data === 'string') {
+            term.write(ev.data);
+        }
+    };
+
+    ws.onclose = () => {
+        setStatus(false, 'disconnected');
+        term.writeln('\r\n\x1b[33mConnection lost. Reconnecting...\x1b[0m');
+        setTimeout(connect, 2000);
+    };
+
+    ws.onerror = () => setStatus(false, 'error');
+
+    term.onData((data) => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(data);
+        }
+    });
+
+    term.onResize(({ cols, rows }) => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ cols, rows }));
+        }
+    });
+}
+
+window.addEventListener('resize', () => {
+    try { fitAddon.fit(); } catch(e) {}
+});
+
+connect();
+</script>
+</body>
+</html>

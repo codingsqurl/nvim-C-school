@@ -1,0 +1,10 @@
+/home/codingsqurl/nvim-c-school/cschool-term/target/debug/deps/actix_utils-4278473634976fea.d: /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/lib.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/counter.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/mod.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/either.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/poll_fn.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/ready.rs
+
+/home/codingsqurl/nvim-c-school/cschool-term/target/debug/deps/libactix_utils-4278473634976fea.rmeta: /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/lib.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/counter.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/mod.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/either.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/poll_fn.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/ready.rs
+
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/lib.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/counter.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/mod.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/either.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/poll_fn.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-utils-3.0.1/src/future/ready.rs:

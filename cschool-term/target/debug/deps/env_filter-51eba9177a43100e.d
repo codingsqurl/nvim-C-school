@@ -1,0 +1,10 @@
+/home/codingsqurl/nvim-c-school/cschool-term/target/debug/deps/env_filter-51eba9177a43100e.d: /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/lib.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/directive.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/filter.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/filtered_log.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/op.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/parser.rs
+
+/home/codingsqurl/nvim-c-school/cschool-term/target/debug/deps/libenv_filter-51eba9177a43100e.rmeta: /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/lib.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/directive.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/filter.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/filtered_log.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/op.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/parser.rs
+
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/lib.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/directive.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/filter.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/filtered_log.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/op.rs:
+/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/env_filter-1.0.1/src/parser.rs:
