@@ -7,8 +7,8 @@ type TerminalProps = {
 export default function Terminal({ initialLines = [] }: TerminalProps) {
   const [lines, setLines] = useState<string[]>(initialLines)
   const [input, setInput] = useState('')
-  const [history, setHistory] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
+  const program = localStorage.getItem('program') || 'KinderRoot'
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -18,9 +18,8 @@ export default function Terminal({ initialLines = [] }: TerminalProps) {
     e.preventDefault()
     if (!input.trim()) return
 
-    const newLines = [...lines, `kiddo@codekids $ ${input}`]
+    const newLines = [...lines, `rootcode@${program.toLowerCase()} $ ${input}`]
     setLines(newLines)
-    setHistory([...history, input])
     setInput('')
   }
 
@@ -31,27 +30,31 @@ export default function Terminal({ initialLines = [] }: TerminalProps) {
   return (
     <div
       onClick={focusTerminal}
-      className="flex-1 bg-[#2d2844] rounded-2xl overflow-hidden font-mono text-sm border-4 border-[#ff6b6b]"
+      className="flex flex-col h-full font-mono text-sm"
+      style={{ backgroundColor: '#1e1e2e' }}
     >
-      <div className="bg-[#ff6b6b] px-4 py-2 text-white font-bold text-center flex justify-center gap-2">
-        <span className="w-3 h-3 bg-white rounded-full"></span>
-        <span className="w-3 h-3 bg-white rounded-full"></span>
-        <span className="w-3 h-3 bg-white rounded-full"></span>
+      <div className="flex items-center px-2 py-1.5 border-b" style={{ backgroundColor: '#262637', borderColor: '#3d3d52' }}>
+        <div className="flex gap-1 mr-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#f7768e]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#e0af68]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#9ece6a]"></span>
+        </div>
+        <span className="text-xs text-[#6c7680]">Terminal</span>
       </div>
-      <div className="p-4 h-[calc(100%-48px)] overflow-y-auto">
-        <p className="text-[#ffafaf] text-center mb-4">Let's Code!</p>
+      
+      <div className="flex-1 p-2 overflow-y-auto">
+        <p className="text-[#89b4fa] mb-2"># {program} Terminal</p>
         {lines.map((line, i) => (
-          <div key={i} className="text-[#e8e4dc] whitespace-pre-wrap">{line}</div>
+          <div key={i} className="text-[#cdd6f4]">{line}</div>
         ))}
-        <form onSubmit={handleSubmit} className="flex items-center gap-2 mt-2">
-          <span className="text-[#7ddda4]">kiddo@codekids</span>
-          <span className="text-[#ffafaf]">$</span>
+        <form onSubmit={handleSubmit} className="flex items-center gap-1 mt-1">
+          <span className="text-[#a6e3a1]">$</span>
           <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            className="flex-1 bg-transparent text-[#e8e4dc] outline-none"
+            className="flex-1 bg-transparent text-[#cdd6f4] outline-none text-xs"
             autoFocus
           />
         </form>

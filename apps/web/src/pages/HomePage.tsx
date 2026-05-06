@@ -1,27 +1,85 @@
 import { Link } from 'react-router-dom'
 
 export default function HomePage() {
+  const program = localStorage.getItem('program') || 'KinderRoot'
+  
+  const programStats = {
+    'KinderRoot': { quests: 5, completed: 0, badge: '🌱' },
+    'ByteForge': { quests: 12, completed: 0, badge: '🔨' },
+    'KernelCamp': { quests: 8, completed: 0, badge: '⚙️' },
+    'BareMetal': { quests: 15, completed: 0, badge: '🔧' },
+  }
+  
+  const stats = programStats[program as keyof typeof programStats] || programStats['KinderRoot']
+
   return (
     <div className="text-center">
-      <h2 className="text-3xl font-extrabold text-[var(--color-accent)] mb-4">🎉 Welcome to CodeKids! 🎉</h2>
-      <p className="text-xl text-[var(--color-text)] mb-8">Ready to learn and have fun?</p>
-      <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-        <Link to="/courses" className="p-6 border-4 border-[var(--color-accent)] rounded-2xl hover:bg-[var(--color-accent-bg)] transition-all cursor-pointer">
-          <div className="text-4xl mb-2">📚</div>
-          <div className="font-bold text-[var(--color-text-h)]">Learn</div>
+      <div className="text-6xl mb-4">{stats.badge}</div>
+      <h2 className="text-3xl font-extrabold text-white mb-4">
+        Welcome to {program}!
+      </h2>
+      <p className="text-[#a9b1d6] text-xl mb-8">
+        Plant the first bit. Grow the entire machine.
+      </p>
+
+      {/* Quick Stats */}
+      <div className="flex justify-center gap-8 mb-8">
+        <div className="bg-[#1a1b26] p-4 rounded-xl" style={{ border: '2px solid #414868' }}>
+          <div className="text-2xl font-bold text-white">{stats.quests}</div>
+          <div className="text-sm text-[#565f89]">Total Quests</div>
+        </div>
+        <div className="bg-[#1a1b26] p-4 rounded-xl" style={{ border: '2px solid #414868' }}>
+          <div className="text-2xl font-bold text-[#7ddda4]">{stats.completed}</div>
+          <div className="text-sm text-[#565f89]">Completed</div>
+        </div>
+        <div className="bg-[#1a1b26] p-4 rounded-xl" style={{ border: '2px solid #414868' }}>
+          <div className="text-2xl font-bold text-[#ff9e64]">0</div>
+          <div className="text-sm text-[#565f89]">Bits Earned</div>
+        </div>
+      </div>
+
+      {/* Main Actions */}
+      <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
+        <Link 
+          to="/courses" 
+          className="p-6 rounded-2xl transition-all hover:scale-105"
+          style={{ backgroundColor: '#4CAF50', color: '#fff' }}
+        >
+          <div className="text-4xl mb-2">🎯</div>
+          <div className="font-bold">Start Quest</div>
+          <div className="text-sm opacity-80">Begin your journey</div>
         </Link>
-        <Link to="/progress" className="p-6 border-4 border-[var(--color-accent)] rounded-2xl hover:bg-[var(--color-accent-bg)] transition-all cursor-pointer">
+        <Link 
+          to="/progress" 
+          className="p-6 rounded-2xl transition-all hover:scale-105"
+          style={{ backgroundColor: '#FF9800', color: '#fff' }}
+        >
           <div className="text-4xl mb-2">⭐</div>
-          <div className="font-bold text-[var(--color-text-h)]">Stars</div>
+          <div className="font-bold">My Badges</div>
+          <div className="text-sm opacity-80">See what you've earned</div>
         </Link>
-        <Link to="/notes" className="p-6 border-4 border-[var(--color-accent)] rounded-2xl hover:bg-[var(--color-accent-bg)] transition-all cursor-pointer">
+        <Link 
+          to="/notes" 
+          className="p-6 rounded-2xl transition-all hover:scale-105"
+          style={{ backgroundColor: '#9C27B0', color: '#fff' }}
+        >
           <div className="text-4xl mb-2">📝</div>
-          <div className="font-bold text-[var(--color-text-h)]">Notes</div>
+          <div className="font-bold">Notes</div>
+          <div className="text-sm opacity-80">Remember what you learn</div>
         </Link>
-        <Link to="/search" className="p-6 border-4 border-[var(--color-accent)] rounded-2xl hover:bg-[var(--color-accent-bg)] transition-all cursor-pointer">
+        <Link 
+          to="/search" 
+          className="p-6 rounded-2xl transition-all hover:scale-105"
+          style={{ backgroundColor: '#7aa2f7', color: '#1a1b26' }}
+        >
           <div className="text-4xl mb-2">🔍</div>
-          <div className="font-bold text-[var(--color-text-h)]">Find</div>
+          <div className="font-bold">Explore</div>
+          <div className="text-sm opacity-80">Find new quests</div>
         </Link>
+      </div>
+
+      <div className="mt-8 text-sm text-[#565f89]">
+        Your journey starts with a single bit. Every great machine begins with 0 and 1.
       </div>
     </div>
   )

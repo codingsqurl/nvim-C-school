@@ -16,8 +16,8 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login(username, password)
-      const ageGroup = localStorage.getItem('ageGroup')
-      navigate(ageGroup ? '/' : '/age-group')
+      const hasProgram = localStorage.getItem('program')
+      navigate(hasProgram ? '/' : '/age-group')
     } catch (err) {
       setError('Oops! Try again!')
     } finally {
@@ -26,32 +26,36 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-accent-bg)]">
-      <div className="w-full max-w-md p-8 border-4 border-[var(--color-accent)] rounded-3xl bg-[var(--color-bg)]">
-        <h1 className="text-4xl font-extrabold text-center text-[var(--color-accent)] mb-2">CodeKids</h1>
-        <p className="text-center text-[var(--color-text)] mb-6">Let's learn to code!</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a1b26] to-[#24283b] p-4">
+      <div className="w-full max-w-md p-8 border-2 border-[#414868] rounded-3xl bg-[#1a1b26]">
+        <div className="text-center mb-6">
+          <div className="text-6xl mb-4">🌱</div>
+          <h1 className="text-3xl font-extrabold text-white mb-2">RootCode Academy</h1>
+          <p className="text-[#a9b1d6]">Plant the first bit. Grow the entire machine.</p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <p className="text-[var(--color-accent)] text-sm text-center font-bold">{error}</p>
+            <p className="text-[#f7768e] text-sm text-center font-bold">{error}</p>
           )}
           <div>
-            <label className="block text-sm text-[var(--color-text)] mb-1 font-bold">Your Name</label>
+            <label className="block text-sm text-[#a9b1d6] mb-1 font-bold">Your Name</label>
             <input
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              className="w-full px-4 py-3 border-4 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text-h)] font-bold"
-              placeholder="Kiddo"
+              className="w-full px-4 py-3 border-2 border-[#414868] rounded-xl bg-[#24283b] text-white font-bold"
+              placeholder="Enter your name"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-[var(--color-text)] mb-1 font-bold">Secret Word</label>
+            <label className="block text-sm text-[#a9b1d6] mb-1 font-bold">Secret Word</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border-4 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text-h)] font-bold"
+              className="w-full px-4 py-3 border-2 border-[#414868] rounded-xl bg-[#24283b] text-white font-bold"
               placeholder="******"
               required
             />
@@ -59,11 +63,16 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 bg-[var(--color-accent)] text-white rounded-xl font-bold text-lg hover:opacity-90 disabled:opacity-50"
+            className="w-full py-4 bg-[#7aa2f7] text-[#1a1b26] rounded-xl font-bold text-lg hover:opacity-90 disabled:opacity-50"
           >
-            {loading ? '⏳ Coming...' : '🎮 Let\'s Go!'}
+            {loading ? '⏳ Coming...' : '🚀 Start Learning!'}
           </button>
         </form>
+
+        <div className="text-center mt-6 text-sm text-[#565f89]">
+          No watered-down content. No fake abstractions.<br/>
+          Just real low-level programming, made fun.
+        </div>
       </div>
     </div>
   )

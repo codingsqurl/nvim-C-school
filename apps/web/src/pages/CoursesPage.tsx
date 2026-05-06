@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const WORLD_SIZE = 2500
+const WORLD_SIZE = 2000
 const PLAYER_SIZE = 48
 const SPEED = 8
 const VIEWPORT_WIDTH = 600
@@ -17,119 +17,101 @@ type Level = {
   icon: string
   objective: string
   description: string
+  code?: string
   unlocked: boolean
   completed: boolean
   parent?: string
 }
 
-const levels: Level[] = [
-  // World 1 - Basics
-  { id: 'l1', name: '🚶 Walk', x: 150, y: 250, world: 1, color: '#4CAF50', icon: '🚶', objective: 'Use keys to move', description: 'Learn to move around', unlocked: true, completed: false },
-  { id: 'l2', name: '🏃 Run', x: 150, y: 450, world: 1, color: '#4CAF50', icon: '🏃', objective: 'Move faster!', description: 'Practice keyboard shortcuts', unlocked: false, completed: false },
-  { id: 'l3', name: '🔍 Look', x: 150, y: 650, world: 1, color: '#4CAF50', icon: '🔍', objective: 'Use mouse to explore', description: 'Navigate with your mouse', unlocked: false, completed: false },
+const byteForgeLevels: Level[] = [
+  // World 1 - First Code
+  { id: 'bf1', name: '👋 Hello World', x: 200, y: 300, world: 1, color: '#FF9800', icon: '👋', objective: 'Write your first program', description: 'Print "Hello, World!" to the screen', code: 'print("Hello, World!")', unlocked: true, completed: false },
+  { id: 'bf2', name: '🧮 Variables', x: 200, y: 500, world: 1, color: '#FF9800', icon: '📦', objective: 'Store data in variables', description: 'Learn about strings and numbers', code: 'name = "Space Coder"\nprint(name)', unlocked: false, completed: false },
+  { id: 'bf3', name: '🔢 Math', x: 200, y: 700, world: 1, color: '#FF9800', icon: '➕', objective: 'Do math with code', description: 'Add, subtract, multiply, divide', code: 'result = 5 + 3\nprint(result)', unlocked: false, completed: false },
   
-  // World 1-2 Bridge
-  { id: 'l4', name: '🐣 First Step', x: 350, y: 550, world: 2, color: '#FF9800', icon: '🐣', objective: 'Click to complete', description: 'Your first challenge!', unlocked: false, completed: false },
-
-  // World 2 - Neovim Introduction
-  { id: 'l5', name: '📝 Neovim', x: 550, y: 450, world: 2, color: '#9C27B0', icon: '📝', objective: 'Meet your new friend!', description: 'The best text editor ever', unlocked: false, completed: false, parent: 'l3' },
+  // World 2 - Making Decisions
+  { id: 'bf4', name: '❓ If Statements', x: 450, y: 600, world: 2, color: '#7C4DFF', icon: '❓', objective: 'Code that makes decisions', description: 'If/else conditions', code: 'if score > 10:\n    print("You win!")', unlocked: false, completed: false },
+  { id: 'bf5', name: '🔄 Loops', x: 450, y: 800, world: 2, color: '#7C4DFF', icon: '🔄', objective: 'Repeat code automatically', description: 'For and while loops', code: 'for i in range(5):\n    print(i)', unlocked: false, completed: false },
   
-  // World 2-3 Bridge (continuing through Neovim)
-  { id: 'l6', name: '⚙️ Install', x: 550, y: 650, world: 2, color: '#2196F3', icon: '⚙️', objective: 'Get Neovim on your computer!', description: 'Download and install Neovim', unlocked: false, completed: false, parent: 'l5' },
+  // World 3 - Functions
+  { id: 'bf6', name: '📦 Functions', x: 700, y: 700, world: 3, color: '#00BCD4', icon: '📦', objective: 'Build reusable code', description: 'Define and call functions', code: 'def greet():\n    print("Hi!")\ngreet()', unlocked: false, completed: false },
+  { id: 'bf7', name: '🎯 Parameters', x: 900, y: 600, world: 3, color: '#00BCD4', icon: '🎯', objective: 'Pass data to functions', description: 'Function arguments', code: 'def hello(name):\n    print(f"Hi {name}!")\nhello("Coder")', unlocked: false, completed: false },
   
-  // Install sub-levels (from Install node)
-  { id: 'l7', name: '💻 Windows', x: 350, y: 750, world: 3, color: '#00BCD4', icon: '🪟', objective: 'Install on Windows', description: 'Winget, Chocolatey, or manual', unlocked: false, completed: false, parent: 'l6' },
-  { id: 'l8', name: '🍎 macOS', x: 550, y: 850, world: 3, color: '#607D8B', icon: '🍎', objective: 'Install on Mac', description: 'Homebrew or Download', unlocked: false, completed: false, parent: 'l6' },
-  { id: 'l9', name: '🐧 Linux', x: 750, y: 750, world: 3, color: '#FF5722', icon: '🐧', objective: 'Install on Linux', description: 'apt, yum, or snap', unlocked: false, completed: false, parent: 'l6' },
+  // World 4 - Data Structures
+  { id: 'bf8', name: '📝 Lists', x: 700, y: 900, world: 4, color: '#E91E63', icon: '📝', objective: 'Store collections', description: 'Lists and arrays', code: 'fruits = ["apple", "banana"]\nprint(fruits[0])', unlocked: false, completed: false },
+  { id: 'bf9', name: '🔑 Dictionaries', x: 900, y: 900, world: 4, color: '#E91E63', icon: '🔑', objective: 'Key-value storage', description: 'Dictionaries', code: 'player = {"name": "Chip", "score": 100}\nprint(player["name"])', unlocked: false, completed: false },
   
-  // After Install paths merge back
-  { id: 'l10', name: '🎓 Learn', x: 550, y: 950, world: 3, color: '#E91E63', icon: '🎓', objective: 'Start learning Neovim!', description: 'Vim commands and more', unlocked: false, completed: false, parent: 'l6' },
+  // World 5 - Real Projects
+  { id: 'bf10', name: '🎮 Game Project', x: 600, y: 1100, world: 5, color: '#4CAF50', icon: '🎮', objective: 'Build your first game!', description: 'A simple number guessing game', code: 'import random\nsecret = random.randint(1,10)\nguess = int(input("Guess: "))\nif guess == secret:\n    print("Winner!")', unlocked: false, completed: false },
+  { id: 'bf11', name: '🌐 Web Scraper', x: 900, y: 1100, world: 5, color: '#4CAF50', icon: '🕷️', objective: 'Fetch data from the web', description: 'Basic HTTP requests', code: 'import urllib.request\npage = urllib.request.urlopen("http://example.com")\nprint(page.read()[:100])', unlocked: false, completed: false },
   
-  // Learning Neovim levels
-  { id: 'l11', name: '⌨️ Commands', x: 350, y: 1050, world: 4, color: '#673AB7', icon: '⌨️', objective: 'Basic vim commands', description: 'h j k l and more', unlocked: false, completed: false, parent: 'l10' },
-  { id: 'l12', name: '📝 Insert Mode', x: 550, y: 1150, world: 4, color: '#673AB7', icon: '📝', objective: 'Type text', description: 'i to insert, Esc to exit', unlocked: false, completed: false, parent: 'l10' },
-  { id: 'l13', name: '💾 Save & Quit', x: 750, y: 1050, world: 4, color: '#673AB7', icon: '💾', objective: ':w and :q', description: 'Write and quitvim', unlocked: false, completed: false, parent: 'l10' },
-  
-  // Final celebration
-  { id: 'l14', name: '🎉 You Did It!', x: 550, y: 1250, world: 5, color: '#FFD700', icon: '🎉', objective: 'Congratulations!', description: 'You learned Neovim basics!', unlocked: false, completed: false },
+  // World 6 - Capstone
+  { id: 'bf12', name: '🚀 Capstone', x: 750, y: 1300, world: 6, color: '#FFD700', icon: '🚀', objective: 'You did it!', description: 'Build something amazing!', unlocked: false, completed: false },
 ]
 
-const worldNames: Record<number, string> = {
-  1: '🌿 Grass World',
-  2: '🏖️ Beach World',
-  3: '💻 Install World',
-  4: '🎓 Learn World',
-  5: '⭐ Star World',
-}
+const kinderRootLevels: Level[] = [
+  // Simplified space world for younger kids
+  { id: 'kr1', name: '🌟 First Bit', x: 200, y: 300, world: 1, color: '#4CAF50', icon: '🌟', objective: 'Flip your first bit!', description: 'Make 0 become 1', unlocked: true, completed: false },
+  { id: 'kr2', name: '🔢 Counting', x: 200, y: 500, world: 1, color: '#4CAF50', icon: '🔢', objective: 'Count in binary', description: 'Learn numbers 0-7', unlocked: false, completed: false },
+  { id: 'kr3', name: '💾 Memory', x: 200, y: 700, world: 1, color: '#2196F3', icon: '💾', objective: 'Store in memory', description: 'Save and load data', unlocked: false, completed: false },
+  { id: 'kr4', name: '🧠 CPU', x: 500, y: 600, world: 2, color: '#9C27B0', icon: '🧠', objective: 'Give instructions', description: 'Program the CPU', unlocked: false, completed: false },
+  { id: 'kr5', name: '🚪 Gates', x: 500, y: 800, world: 2, color: '#FF5722', icon: '🚪', objective: 'Logic gates', description: 'Open the gate!', unlocked: false, completed: false },
+  { id: 'kr6', name: '💻 Computer', x: 750, y: 700, world: 3, color: '#FFD700', icon: '💻', objective: 'Build a computer!', description: 'Put it all together!', unlocked: false, completed: false },
+]
 
-function generatePathSegments(levels: Level[]): { x: number, y: number, width: number, height: number, color: string, fromParent: boolean }[] {
-  const segments: { x: number, y: number, width: number, height: number, color: string, fromParent: boolean }[] = []
-  const pathWidth = 80
+// Generate path segments
+function generatePathSegments(levels: Level[]): { x: number, y: number, width: number, height: number, color: string }[] {
+  const segments: { x: number, y: number, width: number, height: number, color: string }[] = []
+  const pathWidth = 70
 
-  // Main path
   for (let i = 0; i < levels.length - 1; i++) {
     const current = levels[i]
-    const next = levels.find(l => l.id === levels[i + 1]?.id || l.parent === current.id)
-    
-    if (!next) continue
-    
-    // Skip if this is a branching level not reached yet
-    if (current.parent && !levels.some(l => l.id === current.parent && levels.find(p => p.id === current.parent)?.completed)) continue
+    const next = levels[i + 1]
+    if (current.world !== next.world) continue
+    if (current.parent && next.id !== levels.find(l => l.id === current.parent)?.id) continue
     
     const x = Math.min(current.x, next.x) - pathWidth / 2
     const y = Math.min(current.y, next.y) - pathWidth / 2
     const width = Math.abs(next.x - current.x) + pathWidth
     const height = Math.abs(next.y - current.y) + pathWidth
     
-    segments.push({ 
-      x, 
-      y, 
-      width: Math.max(width, pathWidth), 
-      height: Math.max(height, pathWidth), 
-      color: current.color,
-      fromParent: !!current.parent 
-    })
+    segments.push({ x, y, width: Math.max(width, pathWidth), height: Math.max(height, pathWidth), color: current.color })
   }
-  
-  // Parent-to-child connections (sublevels branching)
-  for (const level of levels) {
-    if (!level.parent) continue
-    const parent = levels.find(l => l.id === level.parent)
-    if (!parent) continue
-    
-    const x = Math.min(parent.x, level.x) - pathWidth / 2
-    const y = Math.min(parent.y, level.y) - pathWidth / 2
-    const width = Math.abs(level.x - parent.x) + pathWidth
-    const height = Math.abs(level.y - parent.y) + pathWidth
-    
-    segments.push({
-      x,
-      y,
-      width: Math.max(width, pathWidth),
-      height: Math.max(height, pathWidth),
-      color: parent.color,
-      fromParent: true
-    })
-  }
-  
   return segments
 }
 
-const pathSegments = generatePathSegments(levels)
-
 export default function CoursesPage() {
   const navigate = useNavigate()
-  const [player, setPlayer] = useState({ x: 150, y: 250 })
+  const program = localStorage.getItem('program') || 'KinderRoot'
+  const isByteForge = program === 'ByteForge'
+  const levels = isByteForge ? byteForgeLevels : kinderRootLevels
+  const pathSegments = generatePathSegments(levels)
+  
+  const [player, setPlayer] = useState({ x: 200, y: 300 })
   const [zoom, setZoom] = useState(1)
   const [camera, setCamera] = useState({ x: 0, y: 0 })
   const [showControls, setShowControls] = useState(false)
   const [currentLevel, setCurrentLevel] = useState(levels[0])
   const [completedLevels, setCompletedLevels] = useState<string[]>([])
+  const [showCode, setShowCode] = useState(false)
   const keysRef = useRef<Set<string>>(new Set())
   const leftMouseRef = useRef(false)
   const rightMouseRef = useRef(false)
   const lastMouseRef = useRef({ x: 0, y: 0 })
   const cameraRef = useRef({ x: 0, y: 0 })
+
+  const worldNames: Record<number, string> = isByteForge ? {
+    1: '📝 First Code',
+    2: '❓ Decisions', 
+    3: '📦 Functions',
+    4: '🔑 Data',
+    5: '🎮 Projects',
+    6: '🚀 Capstone'
+  } : {
+    1: '🌟 Bit Basics',
+    2: '🧠 CPU World',
+    3: '💻 Computer'
+  }
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     keysRef.current = new Set([...keysRef.current, e.key.toLowerCase()])
@@ -261,66 +243,71 @@ export default function CoursesPage() {
       if (!completedLevels.includes(closestLevel.id)) {
         setCompletedLevels(prev => [...prev, closestLevel.id])
         
-        // Unlock connected levels
         const currentIdx = levels.findIndex(l => l.id === closestLevel.id)
-        const parentLevel = levels.find(l => l.id === closestLevel.parent)
-        
-        // Unlock parent path if exists
-        if (parentLevel && !parentLevel.unlocked) {
-          const parentIdx = levels.findIndex(l => l.id === parentLevel.id)
-          levels[parentIdx].unlocked = true
-        }
-        
-        // Unlock next main level
         if (currentIdx + 1 < levels.length) {
           levels[currentIdx + 1].unlocked = true
         }
-        
-        // Unlock children (sublevels) of this level
-        for (const level of levels) {
-          if (level.parent === closestLevel.id && !level.unlocked) {
-            const idx = levels.findIndex(l => l.id === level.id)
-            levels[idx].unlocked = true
-          }
-        }
-        
-        // Unlock children of parent
-        if (parentLevel) {
-          for (const level of levels) {
-            if (level.parent === parentLevel.id && !level.unlocked) {
-              const idx = levels.findIndex(l => l.id === level.id)
-              levels[idx].unlocked = true
-            }
-          }
+        if (closestLevel.parent) {
+          const parentIdx = levels.findIndex(l => l.id === closestLevel.parent)
+          if (parentIdx >= 0) levels[parentIdx].unlocked = true
         }
       }
     }
-  }, [player.x, player.y, currentLevel.id, completedLevels])
+  }, [player.x, player.y, currentLevel.id, completedLevels, levels])
 
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-extrabold text-[var(--color-accent)]">
-          {worldNames[currentLevel.world]} - Level {currentLevel.id.replace('l', '')}
+        <h2 className="text-2xl font-extrabold text-white">
+          {worldNames[currentLevel.world]} - Quest {currentLevel.id.replace(/[a-z]/g, '')}
         </h2>
-        <button onClick={() => navigate('/')} className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-xl font-bold">
-          🏠 Home
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setShowCode(!showCode)}
+            className="px-4 py-2 rounded-lg font-bold text-sm"
+            style={{ backgroundColor: '#7C4DFF', color: '#fff' }}
+          >
+            {showCode ? '👀 Hide Code' : '💻 Show Code'}
+          </button>
+          <button onClick={() => navigate('/')} className="px-4 py-2 bg-[#414868] text-white rounded-lg font-bold">
+            🏠 Home
+          </button>
+        </div>
       </div>
-      <div id="game-viewport" className="flex-1 border-4 border-[var(--color-accent)] rounded-2xl overflow-hidden relative cursor-crosshair">
+      
+      <div id="game-viewport" className="flex-1 border-2 rounded-2xl overflow-hidden relative cursor-crosshair" style={{ borderColor: '#414868' }}>
         <div
           className="absolute"
           style={{
             width: WORLD_SIZE * zoom,
             height: WORLD_SIZE * zoom,
             transform: `translate(${-camera.x}px, ${-camera.y}px)`,
-            background: 'linear-gradient(to bottom, #a8e6cf 0%, #dcedc1 100%)',
+            background: 'radial-gradient(ellipse at center, #1a1b26 0%, #0d0d12 100%)',
           }}
         >
+          {/* Stars */}
+          <div className="absolute inset-0">
+            {[...Array(50)].map((_, i) => (
+              <div 
+                key={i}
+                className="absolute bg-white rounded-full animate-pulse"
+                style={{
+                  left: Math.random() * WORLD_SIZE * zoom,
+                  top: Math.random() * WORLD_SIZE * zoom,
+                  width: (Math.random() * 2 + 1) * zoom,
+                  height: (Math.random() * 2 + 1) * zoom,
+                  opacity: Math.random() * 0.7 + 0.3,
+                  animationDuration: `${Math.random() * 2 + 1}s`,
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Path segments */}
           {pathSegments.map((seg, i) => (
             <div
               key={i}
-              className={`absolute rounded-full ${seg.fromParent ? 'border-2 border-dashed border-black opacity-20' : 'opacity-40'}`}
+              className="absolute opacity-30 rounded-full"
               style={{
                 left: seg.x * zoom,
                 top: seg.y * zoom,
@@ -330,27 +317,31 @@ export default function CoursesPage() {
               }}
             />
           ))}
+          
+          {/* Levels */}
           {levels.map(level => level.unlocked && (
             <div
               key={level.id}
-              className={`absolute flex flex-col items-center justify-center rounded-full border-4 ${
-                completedLevels.includes(level.id) ? 'opacity-50' : ''
-              } ${level.parent ? 'w-16 h-16' : 'w-20 h-20'}`}
+              className={`absolute flex flex-col items-center justify-center rounded-full border-2 ${
+                completedLevels.includes(level.id) ? 'opacity-60' : ''
+              }`}
               style={{
-                left: level.x * zoom - (level.parent ? 32 : 40) * zoom,
-                top: level.y * zoom - (level.parent ? 32 : 40) * zoom,
-                width: (level.parent ? 64 : 80) * zoom,
-                height: (level.parent ? 64 : 80) * zoom,
-                backgroundColor: level.color,
-                borderColor: level.completed ? '#FFD700' : level.color,
+                left: level.x * zoom - 30 * zoom,
+                top: level.y * zoom - 30 * zoom,
+                width: 60 * zoom,
+                height: 60 * zoom,
+                backgroundColor: level.color + '30',
+                borderColor: completedLevels.includes(level.id) ? '#FFD700' : level.color,
               }}
             >
-              <span className="text-2xl">{level.icon}</span>
-              <span className="text-xs font-bold text-white text-center leading-tight px-1" style={{ fontSize: 9 * zoom }}>
+              <span className="text-xl">{level.icon}</span>
+              <span className="text-xs font-bold text-white" style={{ fontSize: 8 * zoom }}>
                 {level.name}
               </span>
             </div>
           ))}
+          
+          {/* Player */}
           <div
             className="absolute"
             style={{
@@ -361,43 +352,52 @@ export default function CoursesPage() {
               fontSize: PLAYER_SIZE * zoom,
             }}
           >
-            🧒
+            🚀
           </div>
         </div>
+        
+        {/* Code Panel */}
+        {showCode && currentLevel.code && (
+          <div className="absolute bottom-4 left-4 right-4 bg-[#1a1b26] rounded-xl p-4 border-2 border-[#7C4DFF]">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-bold text-[#7C4DFF]">💻 {currentLevel.name} Code:</span>
+              <button onClick={() => setShowCode(false)} className="text-[#565f89]">✕</button>
+            </div>
+            <pre className="text-sm text-[#c0caf5] font-mono bg-[#0d0d12] p-3 rounded-lg overflow-x-auto">
+              {currentLevel.code}
+            </pre>
+          </div>
+        )}
+        
+        {/* Controls */}
         <div className="absolute bottom-4 left-4">
           <button
             onClick={() => setShowControls(!showControls)}
-            className="bg-[var(--color-accent)] text-white px-3 py-2 rounded-lg font-bold text-lg w-12 h-12 flex items-center justify-center shadow-lg"
+            className="bg-[#414868] text-white px-3 py-2 rounded-lg font-bold text-lg w-12 h-12 flex items-center justify-center"
           >
             {showControls ? '✕' : '☰'}
           </button>
           {showControls && (
-            <div className="mt-2 bg-[var(--color-bg)] rounded-xl p-3 border-4 border-[var(--color-accent)] w-72 shadow-xl max-h-48 overflow-y-auto">
-              <div className="space-y-2 text-sm overflow-y-auto">
-                <div className="text-lg font-bold text-[var(--color-accent)] text-center">
-                  🎯 {currentLevel.name}
-                </div>
-                <div className="text-xs text-center bg-[var(--color-accent-bg)] rounded py-2 px-2 mb-2">
-                  {currentLevel.objective}
-                </div>
-                <div className="text-xs text-gray-500">{currentLevel.description}</div>
-                <div className="grid grid-cols-3 gap-1 text-center mt-3">
-                  <div className="col-start-2 bg-[var(--color-bg)] w-8 h-8 flex items-center justify-center rounded border-2 border-[var(--color-accent)] font-bold">K</div>
-                  <div className="col-start-1 row-start-2 bg-[var(--color-bg)] w-8 h-8 flex items-center justify-center rounded border-2 border-[var(--color-accent)] font-bold">H</div>
-                  <div className="row-start-2 bg-[var(--color-bg)] w-8 h-8 flex items-center justify-center rounded border-2 border-[var(--color-accent)] font-bold">J</div>
-                  <div className="row-start-2 bg-[var(--color-bg)] w-8 h-8 flex items-center justify-center rounded border-2 border-[var(--color-accent)] font-bold">L</div>
-                </div>
-                <div className="text-xs mt-2 text-center">
-                  Left Drag: Move | Right Drag: Look | Scroll: Zoom
-                </div>
+            <div className="mt-2 bg-[#1a1b26] rounded-xl p-3 border-2 border-[#414868] w-64">
+              <div className="text-lg font-bold text-white mb-2">🎯 {currentLevel.name}</div>
+              <div className="text-sm text-[#a9b1d6] mb-3">{currentLevel.objective}</div>
+              <div className="text-xs text-[#565f89] mb-3">{currentLevel.description}</div>
+              <div className="grid grid-cols-3 gap-1 text-center">
+                <div className="bg-[#24283b] w-8 h-8 flex items-center justify-center rounded border border-[#414868] font-bold text-white">K</div>
+                <div className="bg-[#24283b] w-8 h-8 flex items-center justify-center rounded border border-[#414868] font-bold text-white">J</div>
+                <div className="bg-[#24283b] w-8 h-8 flex items-center justify-center rounded border border-[#414868] font-bold text-white">H</div>
+                <div className="bg-[#24283b] w-8 h-8 flex items-center justify-center rounded border border-[#414868] font-bold text-white col-span-3">L</div>
+              </div>
+              <div className="text-xs mt-2 text-center text-[#565f89]">
+                Left Drag: Move | Right Drag: Look | Scroll: Zoom
               </div>
             </div>
           )}
         </div>
-        <div className="absolute top-4 right-4 bg-[var(--color-accent-bg)] rounded-xl px-3 py-1">
-          <span className="font-bold text-[var(--color-text-h)]">
-            ⭐ {completedLevels.length}/{levels.length}
-          </span>
+        
+        {/* Stats */}
+        <div className="absolute top-4 right-4 bg-[#1a1b26] rounded-xl px-3 py-2 border border-[#414868]">
+          <span className="font-bold text-white">⭐ {completedLevels.length}/{levels.filter(l => l.unlocked).length}</span>
         </div>
       </div>
     </div>
