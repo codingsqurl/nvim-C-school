@@ -1,0 +1,76 @@
+.\" C-SCHOOL Manual Page
+.TH CSCHOOL 1 "May 6, 2026" "C-SCHOOL" "C-SCHOOL Manual"
+.SH NAME
+cschool \\- a futuristic Linux-style programming school
+.SH SYNOPSIS
+.B cschool
+[timing] [track] [--help]
+.SH DESCRIPTION
+C-SCHOOL is an interactive programming school teaching low-level concepts
+from bits to kernels. No abstractions. No hand-holding. Just real code.
+.SH OPTIONS
+.TP
+.B track=kinderroot
+Ages 5-10, first concepts in bits, memory, and logic.
+.TP
+.B track=byteforge
+Ages 10+, Python -> C -> Systems. Build real programs.
+.TP
+.B track=core
+Advanced: Assembly, pointers, OS kernels, embedded systems.
+.SH TOPICS
+.TP
+.B LINUX
+Filesystem, shell basics, system admin, networking, kernel concepts.
+.TP
+.B C
+Syntax, pointers, memory management, data structures.
+.TP
+.B PYTHON
+Basics, OOP, scripting, automation.
+.TP
+.B ASSEMBLY
+x86_64 assembly, CPU architecture, registers.
+.TP
+.B CORE
+Mental models, computational thinking, problem solving.
+.SH COMMANDS
+.TP
+.B ls
+List available courses and tracks.
+.TP
+.B cd [topic]
+Navigate to a topic directory.
+.TP
+.B cat [file]
+View course material.
+.TP
+.B vim
+Open the integrated vim editor.
+.TP
+.B man [topic]
+View manual pages for topics.
+.SH ENVIRONMENT
+.TP
+DISPLAY
+Sets the display timing (50%=faster, 100%=normal)
+.TP
+THEME
+Sets the color scheme (see COLORSCHEMES)
+.SH FILES
+.TP
+~/.c-school/profile
+User profile and settings.
+.TP
+~/.c-school/progress
+Learning progress tracking.
+.SH AUTHOR
+Written by the C-SCHOOL team.
+.SH BUGS
+Report bugs at https://github.com/codingsqurl/nvim-c-school/issues
+.SH SEE ALSO
+vim(1), bash(1), man(7), linux(1)
+.SH COLORSCHEMES
+One Dark, Monokai Pro, Night Owl, Tokyo Night, Dracula,
+Gruvbox, Nord, Everforest, Catppuccin, Ros\\('e Pine,
+Andromeda, Hybrid, Paper, Pencil, Tomorrow Night.

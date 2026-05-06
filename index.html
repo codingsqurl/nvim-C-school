@@ -6,13 +6,332 @@
     <title>c-school // arch</title>
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>_arch</text></svg>">
+<script>
+    // ===== GLOBAL VARIABLES =====
+    let currentDir = '~';
+    let currentOutput = '';
+    
+    // ===== USER PROFILE & STATS SYSTEM =====
+    
+    // Get or create user profile
+    function getUserProfile() {
+        let profile = localStorage.getItem('c-school-profile');
+        if (!profile) {
+            profile = {
+                id: Math.random().toString(36).substr(2, 9),
+                username: 'c-student',
+                created: Date.now(),
+                lastActive: Date.now(),
+                colorschemeIndex: Math.floor(Math.random() * colorschemes.length),
+                stats: {
+                    commandsExecuted: 0,
+                    sessionsStarted: 0,
+                    timeSpent: 0, // seconds
+                    topicsCompleted: [],
+                    commandHistory: [],
+                    currentDir: '~',
+                    loginTime: Date.now()
+                }
+            };
+            localStorage.setItem('c-school-profile', JSON.stringify(profile));
+        }
+        return JSON.parse(profile);
+    }
+    
+    // Save user profile
+    function saveUserProfile(profile) {
+        profile.lastActive = Date.now();
+        profile.stats.timeSpent += 1; // increment by 1 second
+        localStorage.setItem('c-school-profile', JSON.stringify(profile));
+    }
+    
+    // Execute command and track stats
+    function executeCommand(cmd) {
+        const profile = getUserProfile();
+        profile.stats.commandsExecuted++;
+        profile.stats.commandHistory.push({
+            cmd: cmd,
+            timestamp: Date.now(),
+            dir: currentDir
+        });
+        // Keep only last 100 commands
+        if (profile.stats.commandHistory.length > 100) {
+            profile.stats.commandHistory = profile.stats.commandHistory.slice(-100);
+        }
+        saveUserProfile(profile);
+        
+        // Execute the command
+        let output = '';
+        const parts = cmd.trim().split(' ');
+        const command = parts[0];
+        const args = parts.slice(1);
+        
+        switch(command) {
+            case '':
+                break;
+            case 'help':
+                output = `C-SCHOOL Commands:
+  ls [dir]     - List directory
+  cd <dir>     - Change directory
+  pwd          - Print working dir
+  whoami       - Current user
+  date         - Show date/time
+  echo <text>  - Print text
+  clear        - Clear screen
+  man <topic>  - Manual page
+  stats        - Show your statistics
+  logout       - End session
+  cat <file>   - Read file
+  vim <file>   - Editor`;
+                break;
+            case 'stats':
+                output = `=== Your Statistics ===
+Commands executed: ${profile.stats.commandsExecuted}
+Session started: ${new Date(profile.stats.loginTime).toLocaleString()}
+Time logged in: ${Math.floor(profile.stats.timeSpent / 60)}m ${profile.stats.timeSpent % 60}s
+Commands this session: ${profile.stats.commandHistory.length}`;
+                break;
+            case 'whoami':
+                output = profile.username;
+                break;
+            case 'pwd':
+                output = currentDir;
+                break;
+            case 'date':
+                output = new Date().toString();
+                break;
+            case 'clear':
+                currentOutput = '';
+                break;
+            case 'logout':
+            case 'exit':
+                profile.stats.sessionsStarted++;
+                profile.stats.loginTime = Date.now();
+                output = 'logout\nGoodbye!';
+                break;
+            case 'cd':
+                if (args[0] === '~') {
+                    currentDir = '~';
+                } else if (args[0] === '..') {
+                    currentDir = currentDir.split('/').slice(0,-1).join('/') || '/';
+                } else if (args[0] === '/') {
+                    currentDir = args[0];
+                } else {
+                    currentDir = currentDir === '~' ? args[0] : currentDir + '/' + args[0];
+                }
+                profile.stats.currentDir = currentDir;
+                break;
+            case 'echo':
+                output = args.join(' ');
+                break;
+            case 'ls':
+                output = `Documents/
+Downloads/
+Projects/
+notes.txt
+README.md`;
+                break;
+            case 'man':
+                output = `C-SCHOOL Manual Pages:
+  cschool(1) - Main help
+  linux(1)   - Linux topics
+  school(420) - Keybindings
+  stats(1)   - Your statistics`;
+                break;
+            case 'cat':
+                output = args[0] ? `Contents of ${args[0]}:\n...` : 'cat: missing filename';
+                break;
+            default:
+                output = `sh: ${command}: command not found`;
+        }
+        
+         return output;
+    }
+    
+    let activeTerminal = 'term1';
+    const terminalContent = {
+        'term1': { dir: '~', prompt: 'c-school@academy:~ $ ', lines: [] },
+        'term2': { dir: 'exercises', prompt: 'c-school@academy:exercises $ ', lines: [] }
+    };
+    
+    // ===== TERMINAL INPUT HANDLING =====
+    document.addEventListener('DOMContentLoaded', function() {
+        const term1Input = document.getElementById('term1-input');
+        const term2Input = document.getElementById('term2-input');
+        
+        function renderPrompt(termId) {
+            const term = document.getElementById(termId);
+            if (!term) return;
+            const content = terminalContent[termId];
+            const input = term.querySelector('.term-input');
+            const display = term.querySelector('.term-prompt');
+            
+            const currentLine = input ? input.value : '';
+            display.innerHTML = content.prompt + currentLine + '<span class="cursor">_</span>';
+        }
+        
+        function updatePromptOnInput(e) {
+            const term = this.closest('.arch-terminal');
+            const termId = term.id;
+            const content = terminalContent[termId];
+            const display = term.querySelector('.term-prompt');
+            
+            const lines = content.lines.join('<br>');
+            display.innerHTML = lines + (lines ? '<br>' : '') + content.prompt + this.value.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '<span class="cursor">_</span>';
+        }
+        
+        function executeInTerminal(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const term = this.closest('.arch-terminal');
+                const termId = term.id;
+                const content = terminalContent[termId];
+                const cmd = this.value.trim();
+                
+                if (cmd) {
+                    content.lines.push(content.prompt + cmd);
+                    const result = executeCommand(cmd);
+                    content.lines.push(result.replace(/\n/g, '<br>'));
+                }
+                
+                this.value = '';
+                renderPrompt(termId);
+            }
+        }
+        
+        // Attach to inputs
+        [term1Input, term2Input].forEach(input => {
+            if (!input) return;
+            input.addEventListener('input', updatePromptOnInput);
+            input.addEventListener('keydown', executeInTerminal);
+            
+            input.addEventListener('focus', function() {
+                document.querySelectorAll('.arch-terminal').forEach(t => t.classList.remove('active'));
+                this.closest('.arch-terminal').classList.add('active');
+            });
+        });
+        
+        // Global click to focus terminal
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.arch-settings') || 
+                e.target.closest('.arch-sidebar') ||
+                e.target.closest('.arch-welcome')) return;
+            
+            const term = e.target.closest('.arch-terminal');
+            if (term) {
+                const input = term.querySelector('.term-input');
+                if (input) input.focus();
+            }
+        });
+        
+    // Vim-style focus switching (W + h/j/k/l)
+    document.addEventListener('keydown', function(e) {
+        if (e.getModifierState('Meta') && ['h','j','k','l'].includes(e.key)) {
+            e.preventDefault();
+            const terminals = ['term1', 'term2'];
+            let idx = terminals.indexOf(activeTerminal);
+            
+            if (e.key === 'h' || e.key === 'j') {
+                // Move left or down (to previous terminal, wrapping to last)
+                idx = (idx - 1 + terminals.length) % terminals.length;
+            } else if (e.key === 'l' || e.key === 'k') {
+                // Move right or up (to next terminal, wrapping to first)
+                idx = (idx + 1) % terminals.length;
+            }
+            
+            activeTerminal = terminals[idx];
+            document.getElementById(activeTerminal).querySelector('.term-input').focus();
+        }
+    });
+        
+        // Focus first
+        if (term1Input) term1Input.focus();
+        activeTerminal = 'term1';
+        document.getElementById('term1').classList.add('active');
+    });
+    setInterval(() => {
+        const profile = getUserProfile();
+        if (profile.stats) {
+            profile.stats.timeSpent = (profile.stats.timeSpent || 0) + 1;
+            localStorage.setItem('c-school-profile', JSON.stringify(profile));
+        }
+    }, 1000);
+    
+    /* 
+       Neovim Colorschemes - Credit to all authors:
+       - Monokai Pro (RisingTide) - monokai.pro
+       - Night Owl (oxalorg) - github.com/oxalorg/night-owl.vim
+       - Tokyo Night (folke) - github.com/folke/tokyo-night.vim
+       - Dracula (Mike Diennard) - dracula.theme
+       - Gruvbox (sainnhe) - github.com/sainnhe/gruvbox
+       - Nord (arcticicestudio) - nordtheme
+       - Everforest (sainnhe) - github.com/sainnhe/everforest
+       - Catppuccin (Catppuccin) - github.com/catppuccin/nvim
+       - Rosé Pine (Rose Pine) - Rosé Pine theme
+       - Andromeda (Yorick Peterse) - github.com/yorickpeterse/andromeda
+       - Hybrid (Kristaps) - github.com/kristaps/hybrid
+       - Paper (Stephen Mc) - github.com/stephenmcpaper/paper
+       - Pencil (Stephen Mc) - github.com/stephenmcpencil/pencil
+       - Tomorrow Night (Chris Kempson) - github.com/chriskempson/tomorrow-theme
+    */
+
+    const colorschemes = [
+        { name: 'One Dark', author: 'Jasonhamster', bg: '#282c34', fg: '#abb2bf', green: '#98c379', subtle: '#2c313c', selection: '#3e4451' },
+        { name: 'Monokai Pro', author: 'RisingTide', bg: '#2d2a2e', fg: '#fcfcfa', green: '#ff6188', subtle: '#383440', selection: '#4c414f' },
+        { name: 'Night Owl', author: 'oxalorg', bg: '#011526', fg: '#c5c8c6', green: '#7aa5ff', subtle: '#0b2942', selection: '#11284f' },
+        { name: 'Tokyo Night', author: 'folke', bg: '#1a1b26', fg: '#a9b1d6', green: '#7aa2f7', subtle: '#24283b', selection: '#283457' },
+        { name: 'Dracula', author: 'Mike Diennard', bg: '#282a36', fg: '#f8f8f2', green: '#bd93f9', subtle: '#303341', selection: '#44475a' },
+        { name: 'Gruvbox', author: 'sainnhe', bg: '#282828', fg: '#ebdbb2', green: '#b8bb26', subtle: '#32302f', selection: '#3c3836' },
+        { name: 'Nord', author: 'arcticicestudio', bg: '#2e3440', fg: '#d8dee9', green: '#88c0d0', subtle: '#3b4252', selection: '#434c5e' },
+        { name: 'Everforest', author: 'sainnhe', bg: '#2d3530', fg: '#d3c6aa', green: '#a7c080', subtle: '#232d28', selection: '#3d4740' },
+        { name: 'Catppuccin', author: 'Catppuccin', bg: '#1e1e2e', fg: '#cdd6f4', green: '#a6e3a1', subtle: '#181825', selection: '#313244' },
+        { name: 'Rose Pine', author: 'Rose Pine', bg: '#191724', fg: '#e0def4', green: '#ebbcba', subtle: '#1f1a2e', selection: '#2a262d' },
+        { name: 'Andromeda', author: 'Yorick Peterse', bg: '#262a39', fg: '#d6d6d6', green: '#62a3da', subtle: '#1e2333', selection: '#323850' },
+        { name: 'Hybrid', author: 'Kristaps', bg: '#1d1d1d', fg: '#c5c5c5', green: '#d13e5e', subtle: '#262626', selection: '#333333' },
+        { name: 'Paper (Light)', author: 'Stephen Mc', bg: '#fafaf6', fg: '#4a4a4a', green: '#c75c68', subtle: '#eee', selection: '#dedede' },
+        { name: 'Pencil (Light)', author: 'Stephen Mc', bg: '#fffaf6', fg: '#5c5c5c', green: '#d65d0e', subtle: '#f5f0e6', selection: '#f0e6d6' },
+        { name: 'Tomorrow Night', author: 'Chris Kempson', bg: '#1d1f21', fg: '#c5c8c6', green: '#b5bd68', subtle: '#282a2e', selection: '#3a3d3e' }
+    ];
+
+    // Get or create unique user profile
+    function getUserProfile() {
+        let profile = localStorage.getItem('c-school-profile');
+        if (!profile) {
+            // Generate unique random profile for new user
+            profile = {
+                id: Math.random().toString(36).substr(2, 9),
+                colorschemeIndex: Math.floor(Math.random() * colorschemes.length),
+                created: Date.now()
+            };
+            localStorage.setItem('c-school-profile', JSON.stringify(profile));
+        }
+        return JSON.parse(profile);
+    }
+
+    // Apply colorscheme to page
+    function applyColorscheme(index) {
+        const scheme = colorschemes[index];
+        document.documentElement.style.setProperty('--nvim-bg', scheme.bg);
+        document.documentElement.style.setProperty('--nvim-fg', scheme.fg);
+        document.documentElement.style.setProperty('--nvim-green', scheme.green);
+        document.documentElement.style.setProperty('--nvim-accent', scheme.green);
+        document.documentElement.style.setProperty('--nvim-subtle', scheme.subtle);
+        document.documentElement.style.setProperty('--nvim-selection', scheme.selection);
+    }
+
+    // Initialize once on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const profile = getUserProfile();
+        applyColorscheme(profile.colorschemeIndex);
+    });
+    </script>
 </head>
 <body class="arch-desktop">
     <!-- Top Bar -->
     <div class="arch-topbar">
         <div class="arch-topbar-mobile-toggle" onclick="toggleSidebar()">&#9776;</div>
         <div class="arch-menu">
-            <span>Applications</span><span>Places</span><span>System</span>
+            <span onclick="toggleSettings()">settings.conf</span>
         </div>
         <div class="arch-workspaces-bar">
             <span class="arch-ws active">1</span>
@@ -26,50 +345,42 @@
 
     <!-- Desktop Area -->
     <div class="arch-desktop-area">
-        <div class="arch-terminal-stack">
-            <div class="arch-terminal">
-                <div class="arch-term-header">
-                    <div class="arch-term-dots">
-                        <span class="arch-term-dot close"></span>
-                        <span class="arch-term-dot minimize"></span>
-                        <span class="arch-term-dot maximize"></span>
-                    </div>
-                    <div class="arch-term-title">c-school@academy:~/linux</div>
-                </div>
-                <div class="arch-term-body">
-                    <div><span class="arch-term-prompt">c-school@academy</span>:<span style="color: #00d4aa;">~</span>$ <span class="arch-term-cursor"></span></div>
-                </div>
-            </div>
-
-            <div class="arch-terminal">
-                <div class="arch-term-header">
-                    <div class="arch-term-dots">
-                        <span class="arch-term-dot close"></span>
-                        <span class="arch-term-dot minimize"></span>
-                        <span class="arch-term-dot maximize"></span>
-                    </div>
-                    <div class="arch-term-title">c-school@academy:~/exercises</div>
-                </div>
-                <div class="arch-term-body">
-                    <div style="font-size: 0.7rem;"><span class="arch-term-prompt">c-school@academy</span>:<span style="color: #ff6b35;">exercises</span>$ </div>
+        <!-- Welcome Window -->
+        <div class="arch-welcome">
+            <h1>C-SCHOOL(1)</h1>
+            <p>A futuristic Linux-style programming school.</p>
+            <p style="margin-top: 8px; font-size: 0.75rem; color: var(--arch-dim);">
+                Master low-level programming from bits to kernels.
+            </p>
+            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--arch-border);">
+                <div style="font-size: 0.65rem; color: var(--nvim-green); margin-bottom: 4px;">COMMANDS</div>
+                <div style="font-family: monospace; font-size: 0.65rem; line-height: 1.6;">
+                    <div>ls - list files</div>
+                    <div>cd - change directory</div>
+                    <div>cat - read file</div>
+                    <div>vim - open editor</div>
+                    <div>man - manual pages</div>
                 </div>
             </div>
+            <div style="margin-top: 12px; font-size: 0.6rem; color: var(--arch-dim);">
+                <span style="cursor:pointer; color: var(--nvim-green);">[W+h/j/k/l] navigate</span> | 
+                <span style="cursor:pointer; color: var(--nvim-green);" onclick="toggleSettings()">[W+,] settings</span>
+            </div>
         </div>
-    </div>
 
-    <!-- Bottom Dock -->
-    <div class="arch-dock">
-        <div class="arch-dock-item">
-            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #00aaff, #0088cc);">&#127968;</span>
-            <span class="arch-dock-label">Home</span>
-        </div>
-        <div class="arch-dock-item">
-            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #00d4aa, #008866);">$</span>
-            <span class="arch-dock-label">Terminal</span>
-        </div>
-        <div class="arch-dock-item">
-            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #ff6b35, #cc4400);">&#128187;</span>
-            <span class="arch-dock-label">Linux</span>
+        <!-- Terminal stack -->
+        <div class="arch-terminal-stack" onclick="focusTerminal()">
+            <!-- Main Terminal -->
+            <div class="arch-terminal active" id="term1" onclick="focusTerminal(event, 'term1')">
+                <textarea class="term-input" id="term1-input" spellcheck="false" autofocus></textarea>
+                <div class="term-prompt" id="term1-prompt">c-school@academy:~&#36; <span class="cursor">&#9616;</span></div>
+            </div>
+
+            <!-- Exercises Terminal -->
+            <div class="arch-terminal" id="term2" onclick="focusTerminal(event, 'term2')">
+                <textarea class="term-input" id="term2-input" spellcheck="false"></textarea>
+                <div class="term-prompt" id="term2-prompt">c-school@exercises:~$ <span class="cursor">&#9616;</span></div>
+            </div>
         </div>
     </div>
 
@@ -80,10 +391,240 @@
         <a href="#" class="arch-sidebar-item" onclick="toggleSidebar()">&#128187; Linux</a>
     </nav>
 
+<!-- Settings Panel (Hyprland-style) -->
+    <div class="arch-settings" id="settingsPanel">
+        <div class="arch-settings-header">
+            <span>settings.conf</span>
+            <span style="cursor:pointer; opacity:0.6;" onclick="toggleSettings()">[x]</span>
+        </div>
+        <div class="arch-settings-body">
+# C-SCHOOL Configuration
+# Hyprland-style config
+
+[general]
+$TERM = wezterm
+$FILEMANAGER = nnn
+$EDITOR = vim
+$BROWSER = firefox
+$SHELL = zsh
+$DISTRO = arch
+
+[display]
+timing = 50%
+theme = random
+animations = true
+blur = true
+transparent = true
+
+[keybindings]
+# Window focus (vim-style using W key)
+$W = SUPER
+
+bind = $W, h, movefocus, l
+bind = $W, j, movefocus, d  
+bind = $W, k, movefocus, u
+bind = $W, l, movefocus, r
+
+bind = $W, left, movefocus, l
+bind = $W, down, movefocus, d
+bind = $W, up, movefocus, u  
+bind = $W, right, movefocus, r
+
+# Window movement  
+bind = $W SHIFT, h, movewindow, l
+bind = $W SHIFT, j, movewindow, d
+bind = $W SHIFT, k, movewindow, u
+bind = $W SHIFT, l, movewindow, r
+
+# Resize window
+bind = $W CTRL, h, resizeactive, -50
+bind = $W CTRL, j, resizeactive, +50
+bind = $W CTRL, k, resizeactive, +50
+bind = $W CTRL, l, resizeactive, -50
+
+# Special
+bind = $W, space, togglefloating
+bind = $W, f11, fullscreen
+bind = $W, q, killactive
+bind = $W, TAB, cyclenext
+
+# Apps
+bind = $W, return, exec, wezterm
+bind = $W, v, exec, vim
+bind = $W, f, exec, nnn
+bind = $W, b, exec, firefox
+
+[modes]
+# Hard Mode: Disables mouse, shows timer, no hints
+
+# Hard Mode toggle below:
+
+</div>
+        <div class="hardmode-toggle" id="hardmodeToggle" onclick="toggleHardmode()">
+            <div class="hardmode-btn"></div>
+            <div>
+                <div class="hardmode-label">HARDCORE MODE</div>
+                <div class="hardmode-desc">No mouse, timer, no hints</div>
+            </div>
+        </div>
+        
+        <div class="arch-settings-body">
+[colorscheme]
+colorschemes = [
+    "One Dark",
+    "Monokai Pro",
+    "Night Owl",
+    "Tokyo Night",
+    "Dracula",
+    "Gruvbox",
+    "Nord",
+    "Everforest",
+    "Catppuccin",
+    "Rose Pine",
+    "Andromeda",
+    "Hybrid",
+    "Paper",
+    "Pencil",
+    "Tomorrow Night"
+]
+# Your colorscheme is randomly assigned to ensure uniqueness
+
+[user]
+# User profile section - managed by localStorage
+id =
+
+# End of settings.conf
+        </div>
+    </div>
+
     <script>
+    // Settings functions
+    function toggleSettings() {
+        document.getElementById('settingsPanel').classList.toggle('open');
+    }
     function toggleSidebar() {
         document.getElementById('mobileSidebar').classList.toggle('open');
     }
+    function toggleHardmode() {
+        document.getElementById('hardmodeToggle').classList.toggle('active');
+        const isActive = document.getElementById('hardmodeToggle').classList.contains('active');
+        localStorage.setItem('c-school-hardmode', isActive);
+    }
+    if (localStorage.getItem('c-school-hardmode') === 'true') {
+        document.getElementById('hardmodeToggle').classList.add('active');
+    }
+
+    // Keybinding handler - W + h/j/k/l to move focus between terminals
+    document.addEventListener('keydown', (e) => {
+        const isAltOrCmd = e.altKey || e.metaKey;
+        
+        // W + h/j/k/l for focus navigation
+        if (isAltOrCmd && ['h','j','k','l'].includes(e.key)) {
+            e.preventDefault();
+            const terms = document.querySelectorAll('.arch-terminal');
+            let activeIndex = -1;
+            terms.forEach((t, i) => t.classList.contains('active') && (activeIndex = i));
+            
+            if (activeIndex >= 0) terms[activeIndex]?.classList.remove('active');
+            
+            if (e.key === 'h' || e.key === 'j') {
+                const target = activeIndex > 0 ? activeIndex - 1 : 0;
+                terms[target]?.classList.add('active');
+                terms[target]?.querySelector('input')?.focus();
+            } else if (e.key === 'l' || e.key === 'k') {
+                const target = activeIndex < terms.length - 1 ? activeIndex + 1 : terms.length - 1;
+                terms[target]?.classList.add('active');
+                terms[target]?.querySelector('input')?.focus();
+            }
+        }
+        
+        // W + , opens settings
+        if (isAltOrCmd && e.key === ',') {
+            e.preventDefault();
+            toggleSettings();
+        }
+        
+        // Click on terminal will focus its input
+        document.querySelectorAll('.arch-terminal').forEach(term => {
+            term.addEventListener('click', () => {
+                document.querySelectorAll('.arch-terminal').forEach(t => t.classList.remove('active'));
+                term.classList.add('active');
+                term.querySelector('input')?.focus();
+            });
+        });
+    });
+
+    // Auto-focus first terminal input on load
+    window.addEventListener('load', () => {
+        const first = document.querySelector('.arch-terminal');
+        if (first) {
+            first.classList.add('active');
+            const input = first.querySelector('textarea');
+            if (input) {
+                input.focus();
+            }
+        }
+    });
+    
+    // Click on terminal to focus input
+    document.querySelectorAll('.arch-terminal').forEach(term => {
+        term.addEventListener('click', () => {
+            document.querySelectorAll('.arch-terminal').forEach(t => t.classList.remove('active'));
+            term.classList.add('active');
+            const input = term.querySelector('textarea');
+            if (input) input.focus();
+        });
+    });
+    
+    function focusTerminal(e, termId) {
+        if (e) e.stopPropagation();
+        document.querySelectorAll('.arch-terminal').forEach(t => t.classList.remove('active'));
+        const term = document.getElementById(termId);
+        if (term) {
+            term.classList.add('active');
+            const input = term.querySelector('textarea');
+            if (input) input.focus();
+        }
+    }
+    
+     // Global click to focus terminal
+     document.addEventListener('click', (e) => {
+         if (!e.target.closest('.arch-settings') && 
+             !e.target.closest('.arch-sidebar') &&
+             !e.target.closest('.arch-welcome')) {
+             const activeTerm = document.querySelector('.arch-terminal.active');
+             if (activeTerm) {
+                 const input = activeTerm.querySelector('textarea');
+                 if (input) input.focus();
+             }
+         }
+     });
+    
+
+            
+            // Show typed text
+            input.addEventListener('input', function(e) {
+                const prompt = this.parentElement.querySelector('.term-prompt');
+                const dir = this.id === 'term2-input' ? 'exercises' : '~';
+                prompt.innerHTML = 'c-school@academy:' + dir + '&#36; ' + this.value.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '<span class="cursor">&#9616;</span>';
+            });
+            
+            // Handle Enter key
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const cmd = this.value;
+                    const prompt = this.parentElement.querySelector('.term-prompt');
+                    const dir = this.id === 'term2-input' ? 'exercises' : '~';
+                    
+                    // Run command
+                    const result = executeCommand(cmd);
+                    prompt.innerHTML = result.replace(/\n/g, '<br>') + '<span class="cursor">&#9616;</span>';
+                    
+                    this.value = '';
+                }
+            });
+        });
     </script>
 </body>
 </html>

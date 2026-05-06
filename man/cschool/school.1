@@ -1,0 +1,61 @@
+.\" CSCHOOL(1) Manual Page
+.TH CSCHOOL 1 "May 6, 2026" "C-SCHOOL" "C-SCHOOL Manual"
+.SH NAME
+school \\- C-SCHOOL learning system
+.SH SYNOPSIS
+.B school
+[command] [arguments]
+.SH DESCRIPTION
+school is the primary command interface for C-SCHOOL. 
+It provides access to interactive programming lessons.
+.SH COMMANDS
+.TP
+.B school ls
+List all available courses.
+.TP
+.B school cd [course]
+Enter a course directory.
+.TP
+.B school cat [lesson]
+Display lesson content.
+.TP
+.B school vim
+Launch vim with C-SCHOOL integration.
+.TP
+.B school man [topic]
+View manual for a topic.
+.TP
+.B school progress
+Show learning progress.
+.TP
+.B school theme [name]
+Change colorscheme.
+.TP
+.B school timing [percent]
+Set animation timing (10-200%).
+.SH FILES
+.TP
+~/c-school/
+User home directory for C-SCHOOL.
+.TP
+~/c-school/profile
+User profile data.
+.TP
+~/c-school/progress.json
+Progress tracking.
+.SH EXAMPLES
+.TP
+List courses:
+.B school ls
+.TP
+Start Linux track:
+.B school cd linux
+.TP
+View manual:
+.B school man cschool
+.SH AUTHORS
+C-SCHOOL - A futuristic programming school.
+.SH VERSION
+C-SCHOOL 1.0
+.SH SEE ALSO
+cschool(1), man(7)

@@ -1,0 +1,171 @@
+.\" CSCHOOL(420) Manual Page - Mouse-Free Terminal Guide
+.TH CSCHOOL 420 "May 6, 2026" "C-SCHOOL" "C-SCHOOL Manual"
+.SH NAME
+school \\- C-SCHOOL terminal and keybinding guide
+.SH SYNOPSIS
+.B school
+[command]
+.SH DESCRIPTION
+C-SCHOOL provides an optional mouse-free terminal experience inspired by vim.
+This guide covers keybindings for users who want to navigate without a mouse.
+This is NOT required \\- mouse usage is always supported.
+.SH MOUSE-FREE BASICS
+.PP
+The terminal is your primary interface. Here are the essential keybinds:
+.SS Navigation
+.TP
+.B Ctrl+a
+Jump to beginning of line (instead of clicking line start)
+.TP
+.B Ctrl+e
+Jump to end of line (instead of clicking line end)  
+.TP
+.B Ctrl+b
+Move back one character (instead of left arrow)
+.TP
+.B Ctrl+f
+Move forward one character (instead of right arrow)
+.TP
+.B Ctrl+w
+Delete word before cursor (instead of backspace on word)
+.TP
+.B Ctrl+u
+Clear line before cursor (instead of selecting and delete)
+.SS Vim-Style (Recommended)
+.TP
+.B Esc
+Enter normal mode - disable arrow keys temporarily
+.TP
+.B h
+Move left
+.TP
+.B j  
+Move down
+.TP
+.B k
+Move up  
+.TP
+.B l
+Move right
+.TP
+.B w
+Word forward
+.TP
+.B b
+Word back
+.TP
+.B 0
+Beginning of line
+.TP
+.B $
+End of line
+.TP
+.B dd
+Delete entire line
+.TP
+.B yy
+Yank (copy) line
+.TP
+.B p
+Paste
+.TP
+.B u
+Undo
+.TP
+.B Ctrl+r
+Redo
+.SH BASIC COMMANDS
+.SS File Operations
+.TP
+.B ls
+List files in current directory
+.TP
+.B ls -la
+List all files with details
+.TP
+.B cd [dir]
+Change directory
+.TP
+.B pwd
+Print working directory
+.TP
+.B cat [file]
+Display file contents
+.TP
+.B mkdir [name]
+Create directory
+.TP
+.B rm [file]
+Remove file
+.TP
+.B cp [src] [dst]
+Copy file
+.TP
+.B mv [src] [dst]
+Move/rename file
+.SS Process Management
+.TP
+.B ps
+List processes
+.TP
+.B top
+System monitor
+.TP
+.B kill [pid]
+Terminate process
+.SS Text Editing
+.TP
+.B vim [file]
+Open vim editor
+.TP
+.B nano [file]
+Simple editor
+.TP
+.B echo [text]
+Print text
+.SH KEYBINDING CHEATSHEET
+.PP
+.nf
+Movement:
+  h j k l     - left down up right
+  w b         - word forward back
+  0 $         - line start end
+  gg G        - file start end
+
+Editing:
+  i a        - insert before after cursor
+  o A        - new line below above
+  dd yy      - delete copy line
+  p P        - paste below above
+  u Ctrl+r   - undo redo
+
+Search:
+  / ?        - search forward back
+  n N        - next previous match
+  * #        - search word under cursor
+
+Terminal:
+  Ctrl+z     - background
+  Ctrl+c     - interrupt
+  Ctrl+d     - exit
+  Ctrl+l     - clear screen
+.fi
+.SH OPTIONAL PRACTICE
+.PP
+To practice mouse-free navigation:
+.PP
+1. Disable mouse in terminal: Right-click > Disable Mouse
+.PP  
+2. Use only keyboard for navigation
+.PP
+3. Start with vimtutor: Run \fBvimtutor\fR
+.PP
+Remember: This is an OPTION. Use the mouse anytime you prefer.
+.SH FILES
+.TP
+~/.c-school/profile    - User settings
+~/.c-school/progress   - Learning progress
+.SH SEE ALSO
+cschool(1), linux(1), vim(1), man(7)
+.SH VERSION  
+C-SCHOOL 1.0 - Section 420 (Education)
