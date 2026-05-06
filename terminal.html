@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>c-school // terminal</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>$</text></svg>">
+</head>
+<body class="arch-desktop">
+    <!-- Arch-style Top Bar -->
+    <div class="arch-topbar">
+        <div class="arch-menu">
+            <span>Applications</span>
+            <span>Places</span>
+            <span>System</span>
+        </div>
+        <div class="arch-workspaces-bar">
+            <span class="arch-ws">1</span>
+            <a href="index.html" class="arch-ws active">2</a>
+            <span class="arch-ws">3</span>
+            <span class="arch-ws">4</span>
+            <span class="arch-ws">5</span>
+        </div>
+        <div class="arch-systemtray">
+            <span class="arch-tray-item">&#128246;</span>
+            <span class="arch-tray-item">&#128266;</span>
+            <span class="arch-tray-item">&#128267;</span>
+            <span class="arch-clock">Tue May 06 12:00</span>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar -->
+    <nav class="arch-sidebar" id="mobileSidebar">
+        <a href="index.html" class="arch-sidebar-item" onclick="toggleSidebar()">
+            <span>&#127968;</span> <span>Home</span>
+        </a>
+        <a href="terminal.html" class="arch-sidebar-item active" onclick="toggleSidebar()">
+            <span>$</span> <span>Terminal</span>
+        </a>
+        <div class="arch-sidebar-item" onclick="toggleSidebar()">
+            <span>&#128187;</span> <span>Linux</span>
+        </div>
+        <div class="arch-sidebar-item" onclick="toggleSidebar()">
+            <span>&#128218;</span> <span>Docs</span>
+        </div>
+        <div class="arch-sidebar-item" onclick="toggleSidebar()">
+            <span>&#128269;</span> <span>Search</span>
+        </div>
+    </nav>
+
+    <script>
+    function toggleSidebar() {
+        document.getElementById('mobileSidebar').classList.toggle('open');
+    }
+    </script>
+
+    <!-- Terminal Window -->
+    <div class="arch-term-container">
+        <div class="arch-terminal">
+            <div class="arch-term-header">
+                <div class="arch-term-dots">
+                    <span class="arch-term-dot close"></span>
+                    <span class="arch-term-dot minimize"></span>
+                    <span class="arch-term-dot maximize"></span>
+                </div>
+                <div class="arch-term-title">c-school@academy:~/linux</div>
+                <div style="width: 48px;"></div>
+            </div>
+            <div class="arch-term-body">
+                <div><span class="arch-term-prompt">c-school@academy</span>:<span style="color: #00d4aa;">~</span>$ <span class="arch-term-cursor"></span></div>
+            </div>
+        </div>
+</div>
+</body>
+</html>

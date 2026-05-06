@@ -1,0 +1,341 @@
+/* C-SCHOOL - Beautiful Arch Linux Desktop Experience */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Arch Linux colors */
+    --arch-bg: #0b0b0f;
+    --arch-surface: #141418;
+    --arch-surface-hover: #1a1a1e;
+    --arch-border: #222228;
+    --arch-text: #e8e8f0;
+    --arch-dim: #606068;
+    /* Accent - warm amber like OMARCHY */
+    --accent: #ff9f43;
+    --accent2: #00d4aa;
+    --accent-glow: rgba(255, 159, 67, 0.3);
+    --accent2-glow: rgba(0, 212, 170, 0.3);
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--arch-bg);
+    color: var(--arch-text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Mobile-first: Hide desktop elements by default, show on larger screens */
+.arch-menu, .arch-workspaces-bar, .arch-systemtray {
+    display: none;
+}
+
+.arch-stats-tui, .arch-icons {
+    display: none;
+}
+
+.arch-dock {
+    display: flex;
+}
+
+/* Desktop only */
+@media (min-width: 769px) {
+    .arch-menu, .arch-workspaces-bar, .arch-systemtray {
+        display: flex;
+    }
+    
+    .arch-stats-tui, .arch-icons {
+        display: block;
+    }
+    
+    .arch-dock {
+        bottom: 24px;
+        right: 24px;
+    }
+    
+    .arch-clock {
+        display: block;
+    }
+}
+
+/* Mobile toggle for topbar elements */
+.arch-topbar-mobile-toggle {
+    display: flex;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+}
+
+.arch-topbar-mobile-toggle:hover {
+    color: var(--arch-text);
+}
+
+/* Mobile Sidebar */
+.arch-sidebar {
+    position: fixed;
+    top: 28px;
+    left: 0;
+    bottom: 0;
+    width: 200px;
+    background: var(--arch-surface);
+    border-right: 1px solid var(--arch-border);
+    padding: 12px 0;
+    z-index: 99;
+    display: none;
+}
+
+.arch-sidebar.open {
+    display: block;
+}
+
+.arch-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    color: var(--arch-dim);
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.arch-sidebar-item:hover, .arch-sidebar-item.active {
+    background: var(--arch-surface-hover);
+    color: var(--arch-text);
+}
+
+.arch-sidebar-item.active {
+    border-left: 2px solid var(--accent);
+}
+
+@media (min-width: 769px) {
+    .arch-sidebar {
+        display: none !important;
+    }
+    
+    .arch-topbar-mobile-toggle {
+        display: none !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .arch-topbar-mobile-toggle {
+        display: none;
+    }
+}
+
+/* ========== ARCH TOP BAR ========== */
+.arch-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 28px;
+    background: rgba(20, 20, 24, 0.95);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    z-index: 100;
+    border-bottom: 1px solid var(--arch-border);
+    font-size: 0.7rem;
+}
+
+.arch-menu {
+    display: flex;
+    gap: 16px;
+    color: var(--arch-dim);
+}
+
+.arch-menu span {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.arch-menu span:hover {
+    background: var(--arch-surface-hover);
+    color: var(--arch-text);
+}
+
+.arch-systemtray {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.65rem;
+    color: var(--arch-dim);
+}
+
+.arch-tray-item {
+    cursor: pointer;
+}
+
+.arch-clock {
+    font-weight: 500;
+}
+
+/* Workspaces in Top Bar */
+.arch-workspaces-bar {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+}
+
+.arch-workspaces-bar .arch-ws {
+    width: 20px;
+    height: 16px;
+    background: rgba(30, 30, 38, 0.8);
+    border: 1px solid var(--arch-border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    color: var(--arch-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.arch-workspaces-bar .arch-ws:hover {
+    background: var(--arch-surface-hover);
+    color: var(--arch-text);
+}
+
+.arch-workspaces-bar .arch-ws.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--arch-bg);
+}
+
+/* ========== BOTTOM DOCK ========== */
+.arch-dock {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    height: 44px;
+    background: rgba(20, 20, 24, 0.9);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--arch-border);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+    z-index: 100;
+}
+
+.arch-dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border-radius: 12px;
+}
+
+.arch-dock-item:hover {
+    background: var(--arch-surface-hover);
+}
+
+.arch-dock-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: var(--arch-bg);
+}
+
+.arch-dock-label {
+    font-size: 0.55rem;
+    color: var(--arch-dim);
+}
+
+.arch-dock-item:hover .arch-dock-label {
+    color: var(--arch-text);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .arch-menu { display: none; }
+    
+    .arch-workspaces-bar {
+        gap: 2px;
+    }
+    
+    .arch-workspaces-bar .arch-ws {
+        width: 16px;
+        height: 12px;
+        font-size: 0.45rem;
+    }
+    
+    .arch-systemtray {
+        gap: 8px;
+        font-size: 0.55rem;
+    }
+    
+    .arch-clock {
+        font-size: 0.55rem;
+    }
+    
+    /* Desktop area adjustments */
+    .arch-desktop-area {
+        padding: 12px;
+    }
+    
+    .arch-time {
+        font-size: 2.5rem;
+    }
+    
+    .arch-date {
+        font-size: 0.8rem;
+    }
+    
+    /* Hide desktop widgets on mobile */
+    .arch-stats-tui {
+        display: none;
+    }
+    
+    .arch-icons {
+        display: none;
+    }
+    
+    /* Mobile dock at bottom center */
+    .arch-dock {
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 48px;
+        padding: 0 6px;
+        gap: 2px;
+    }
+    
+    .arch-dock-item {
+        padding: 4px 8px;
+    }
+    
+    .arch-dock-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    .arch-dock-label {
+        font-size: 0.45rem;
+    }
+}
