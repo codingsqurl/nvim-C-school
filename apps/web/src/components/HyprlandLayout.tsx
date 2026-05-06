@@ -3,11 +3,11 @@ import { useAuth } from '../context/AuthContext'
 import Terminal from './Terminal'
 
 const navLinks = [
-  { path: '/', label: 'Home' },
-  { path: '/courses', label: 'Courses' },
-  { path: '/notes', label: 'Notes' },
-  { path: '/progress', label: 'Progress' },
-  { path: '/search', label: 'Search' },
+  { path: '/', label: '🏠Home' },
+  { path: '/courses', label: '📚Learn' },
+  { path: '/notes', label: '📝My Notes' },
+  { path: '/progress', label: '⭐Stars' },
+  { path: '/search', label: '🔍Find' },
 ]
 
 export default function HyprlandLayout() {
@@ -22,35 +22,36 @@ export default function HyprlandLayout() {
 
   return (
     <div className="min-h-screen flex gap-4 p-4">
-      <aside className="w-56 border border-[var(--color-border)] rounded-lg p-4 flex flex-col">
-        <h1 className="text-xl font-bold mb-8 text-[var(--color-text-h)]">Learn</h1>
-        <nav className="flex-1 space-y-1">
+      <aside className="w-64 border-4 border-[var(--color-accent)] rounded-2xl p-4 flex flex-col bg-[var(--color-accent-bg)]">
+        <h1 className="text-2xl font-extrabold mb-8 text-[var(--color-accent)] text-center">CodeKids</h1>
+        <p className="text-center text-[var(--color-text-h)] mb-4 font-bold">Welcome back!</p>
+        <nav className="flex-1 space-y-2">
           {navLinks.map(link => (
             <Link
               key={link.path}
               to={link.path}
-              className={`block px-3 py-2 rounded text-sm transition-colors ${
+              className={`block px-4 py-3 rounded-xl text-lg font-bold transition-all ${
                 location.pathname === link.path
-                  ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] border border-[var(--color-accent-border)]'
-                  : 'text-[var(--color-text)] hover:bg-[var(--color-social-bg)]'
+                  ? 'bg-[var(--color-accent)] text-white shadow-lg scale-105'
+                  : 'text-[var(--color-text-h)] hover:bg-[var(--color-social-bg)] hover:scale-102'
               }`}
             >
               {link.label}
             </Link>
           ))}
         </nav>
-        <div className="pt-4 border-t border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text)] mb-2">{user?.username}</p>
-          <button onClick={handleLogout} className="text-sm text-[var(--color-text)] hover:text-[var(--color-text-h)]">
-            Sign Out
+        <div className="pt-4 border-t-2 border-[var(--color-accent)]">
+          <p className="text-center font-bold text-[var(--color-text-h)] mb-2">👤 {user?.username}</p>
+          <button onClick={handleLogout} className="w-full text-center text-sm text-[var(--color-text)] hover:text-[var(--color-accent)]">
+            👋 Bye Bye!
           </button>
         </div>
       </aside>
       <div className="flex-1 flex gap-4">
-        <main className="flex-1 border border-[var(--color-border)] rounded-lg p-8 overflow-auto">
+        <main className="flex-1 border-4 border-[var(--color-border)] rounded-2xl p-8 overflow-auto bg-[var(--color-bg)]">
           <Outlet />
         </main>
-        <div className="w-[500px] border border-[var(--color-border)] rounded-lg overflow-hidden">
+        <div className="w-[400px] border-4 border-[var(--color-accent)] rounded-2xl overflow-hidden">
           <Terminal />
         </div>
       </div>

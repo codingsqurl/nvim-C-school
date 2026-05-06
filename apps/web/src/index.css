@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-text: #6b6375;
-  --color-text-h: #08060d;
-  --color-bg: #fff;
-  --color-border: #e5e4e7;
-  --color-code-bg: #f4f3ec;
-  --color-accent: #aa3bff;
-  --color-accent-bg: rgba(170, 59, 255, 0.1);
-  --color-accent-border: rgba(170, 59, 255, 0.5);
-  --color-social-bg: rgba(244, 243, 236, 0.5);
+  --color-text: #5a5567;
+  --color-text-h: #2d2844;
+  --color-bg: #fefcf8;
+  --color-border: #e8e4dc;
+  --color-code-bg: #f7f4eb;
+  --color-accent: #ff6b6b;
+  --color-accent-bg: rgba(255, 107, 107, 0.1);
+  --color-accent-border: rgba(255, 107, 107, 0.5);
+  --color-social-bg: rgba(253, 249, 235, 0.8);
 
-  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --font-heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: system-ui, 'Comic Sans MS', 'Chalkboard', 'Segoe UI', Roboto, sans-serif;
+  --font-heading: system-ui, 'Comic Sans MS', 'Chalkboard', 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, Consolas, monospace;
 }
 
@@ -22,15 +22,15 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-text: #9ca3af;
-    --color-text-h: #f3f4f6;
-    --color-bg: #16171d;
-    --color-border: #2e303a;
-    --color-code-bg: #1f2028;
-    --color-accent: #c084fc;
-    --color-accent-bg: rgba(192, 132, 252, 0.15);
-    --color-accent-border: rgba(192, 132, 252, 0.5);
-    --color-social-bg: rgba(47, 48, 58, 0.5);
+    --color-text: #a8a4b8;
+    --color-text-h: #e8e4dc;
+    --color-bg: #1e1d24;
+    --color-border: #3a3848;
+    --color-code-bg: #262430;
+    --color-accent: #ff8585;
+    --color-accent-bg: rgba(255, 133, 133, 0.15);
+    --color-accent-border: rgba(255, 133, 133, 0.5);
+    --color-social-bg: rgba(42, 40, 56, 0.8);
   }
 }
 

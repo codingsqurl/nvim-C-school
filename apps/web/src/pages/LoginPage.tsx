@@ -19,46 +19,49 @@ export default function LoginPage() {
       const ageGroup = localStorage.getItem('ageGroup')
       navigate(ageGroup ? '/' : '/age-group')
     } catch (err) {
-      setError('Invalid username or password')
+      setError('Oops! Try again!')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md p-8 border border-[var(--color-border)] rounded-lg">
-        <h1 className="text-2xl font-bold text-center text-[var(--color-text-h)] mb-6">Step Into The Low-Level Journey</h1>
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-accent-bg)]">
+      <div className="w-full max-w-md p-8 border-4 border-[var(--color-accent)] rounded-3xl bg-[var(--color-bg)]">
+        <h1 className="text-4xl font-extrabold text-center text-[var(--color-accent)] mb-2">CodeKids</h1>
+        <p className="text-center text-[var(--color-text)] mb-6">Let's learn to code!</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <p className="text-red-500 text-sm">{error}</p>
+            <p className="text-[var(--color-accent)] text-sm text-center font-bold">{error}</p>
           )}
           <div>
-            <label className="block text-sm text-[var(--color-text)] mb-1">Username</label>
+            <label className="block text-sm text-[var(--color-text)] mb-1 font-bold">Your Name</label>
             <input
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border border-[var(--color-border)] rounded bg-[var(--color-bg)] text-[var(--color-text-h)]"
+              className="w-full px-4 py-3 border-4 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text-h)] font-bold"
+              placeholder="Kiddo"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-[var(--color-text)] mb-1">Password</label>
+            <label className="block text-sm text-[var(--color-text)] mb-1 font-bold">Secret Word</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-[var(--color-border)] rounded bg-[var(--color-bg)] text-[var(--color-text-h)]"
+              className="w-full px-4 py-3 border-4 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text-h)] font-bold"
+              placeholder="******"
               required
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-[var(--color-accent)] text-white rounded hover:opacity-90 disabled:opacity-50"
+            className="w-full py-4 bg-[var(--color-accent)] text-white rounded-xl font-bold text-lg hover:opacity-90 disabled:opacity-50"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? '⏳ Coming...' : '🎮 Let\'s Go!'}
           </button>
         </form>
       </div>
