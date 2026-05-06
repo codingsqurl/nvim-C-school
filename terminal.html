@@ -10,6 +10,7 @@
 <body class="arch-desktop">
     <!-- Arch-style Top Bar -->
     <div class="arch-topbar">
+        <div class="arch-topbar-mobile-toggle" onclick="toggleSidebar()">&#9776;</div>
         <div class="arch-menu">
             <span>Applications</span>
             <span>Places</span>
@@ -27,6 +28,48 @@
             <span class="arch-tray-item">&#128266;</span>
             <span class="arch-tray-item">&#128267;</span>
             <span class="arch-clock">Tue May 06 12:00</span>
+        </div>
+    </div>
+
+    <!-- Terminal Window -->
+    <div class="arch-term-container">
+        <div class="arch-terminal">
+            <div class="arch-term-header">
+                <div class="arch-term-dots">
+                    <span class="arch-term-dot close"></span>
+                    <span class="arch-term-dot minimize"></span>
+                    <span class="arch-term-dot maximize"></span>
+                </div>
+                <div class="arch-term-title">c-school@academy:~/linux</div>
+                <div style="width: 48px;"></div>
+            </div>
+            <div class="arch-term-body">
+                <div><span class="arch-term-prompt">c-school@academy</span>:<span style="color: #00d4aa;">~</span>$ <span class="arch-term-cursor"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Dock -->
+    <div class="arch-dock">
+        <a href="index.html" class="arch-dock-item">
+            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #00aaff, #0088cc);">&#127968;</span>
+            <span class="arch-dock-label">Home</span>
+        </a>
+        <a href="terminal.html" class="arch-dock-item">
+            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #00d4aa, #008866);">$</span>
+            <span class="arch-dock-label">Terminal</span>
+        </a>
+        <div class="arch-dock-item">
+            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #ff6b35, #cc4400);">&#128187;</span>
+            <span class="arch-dock-label">Linux</span>
+        </div>
+        <div class="arch-dock-item">
+            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #aa00ff, #6600cc);">&#128218;</span>
+            <span class="arch-dock-label">Docs</span>
+        </div>
+        <div class="arch-dock-item">
+            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #ffaa00, #cc8800);">&#128269;</span>
+            <span class="arch-dock-label">Search</span>
         </div>
     </div>
 
@@ -54,23 +97,5 @@
         document.getElementById('mobileSidebar').classList.toggle('open');
     }
     </script>
-
-    <!-- Terminal Window -->
-    <div class="arch-term-container">
-        <div class="arch-terminal">
-            <div class="arch-term-header">
-                <div class="arch-term-dots">
-                    <span class="arch-term-dot close"></span>
-                    <span class="arch-term-dot minimize"></span>
-                    <span class="arch-term-dot maximize"></span>
-                </div>
-                <div class="arch-term-title">c-school@academy:~/linux</div>
-                <div style="width: 48px;"></div>
-            </div>
-            <div class="arch-term-body">
-                <div><span class="arch-term-prompt">c-school@academy</span>:<span style="color: #00d4aa;">~</span>$ <span class="arch-term-cursor"></span></div>
-            </div>
-        </div>
-</div>
 </body>
 </html>

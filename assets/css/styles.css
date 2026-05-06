@@ -29,19 +29,13 @@ body {
     overflow: hidden;
     height: 100vh;
     width: 100vw;
+    margin: 0;
+    padding: 0;
 }
 
-/* Mobile-first: Hide desktop elements by default, show on larger screens */
-.arch-menu, .arch-workspaces-bar, .arch-systemtray {
-    display: none;
-}
-
-.arch-stats-tui, .arch-icons {
-    display: none;
-}
-
+/* Bottom Dock - hidden by default */
 .arch-dock {
-    display: flex;
+    display: none;
 }
 
 /* Desktop only */
@@ -50,17 +44,8 @@ body {
         display: flex;
     }
     
-    .arch-stats-tui, .arch-icons {
-        display: block;
-    }
-    
-    .arch-dock {
-        bottom: 24px;
-        right: 24px;
-    }
-    
-    .arch-clock {
-        display: block;
+    .arch-terminal {
+        display: flex;
     }
 }
 
@@ -146,6 +131,55 @@ body {
     z-index: 100;
     border-bottom: 1px solid var(--arch-border);
     font-size: 0.7rem;
+}
+
+/* Desktop area */
+.arch-desktop-area {
+    position: fixed;
+    top: 28px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 12px;
+    display: flex;
+    justify-content: flex-end;
+    overflow: hidden;
+}
+
+/* Terminal stack container on right */
+.arch-terminal-stack {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    width: 40%;
+    max-width: 450px;
+    height: 100%;
+    gap: 8px;
+}
+
+.arch-terminal:first-child {
+    flex: 1;
+    min-height: 100px;
+}
+
+.arch-terminal:last-child {
+    flex: 0 0 25%;
+    min-height: 0;
+    max-height: 25%;
+}
+
+.arch-terminal {
+    background: var(--arch-surface);
+    border: 1px solid var(--arch-border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.arch-terminal:hover {
+    border-color: var(--accent);
 }
 
 .arch-menu {
@@ -268,6 +302,83 @@ body {
 
 .arch-dock-item:hover .arch-dock-label {
     color: var(--arch-text);
+}
+
+/* ========== TERMINAL WINDOW ========== */
+.arch-terminal {
+    width: 100%;
+    max-width: 700px;
+    height: 50%;
+    background: var(--arch-surface);
+    border: 1px solid var(--arch-border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.arch-terminal:hover {
+    border-color: var(--accent);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px var(--accent-glow);
+}
+
+.arch-term-header {
+    height: 28px;
+    background: rgba(10, 10, 14, 0.95);
+    border-bottom: 1px solid var(--arch-border);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+}
+
+.arch-term-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.arch-term-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.arch-term-dot.close { background: #ff5f56; }
+.arch-term-dot.minimize { background: #ffbd2e; }
+.arch-term-dot.maximize { background: #27ca40; }
+
+.arch-term-title {
+    flex: 1;
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--arch-dim);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.arch-term-body {
+    flex: 1;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--arch-text);
+    overflow-y: auto;
+}
+
+.arch-term-prompt {
+    color: var(--accent);
+}
+
+.arch-term-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--accent);
+    animation: blink 1s infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
 }
 
 /* Mobile */

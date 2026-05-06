@@ -8,122 +8,52 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>_arch</text></svg>">
 </head>
 <body class="arch-desktop">
-    <!-- Arch-style Top Bar -->
+    <!-- Top Bar -->
     <div class="arch-topbar">
-        <div class="arch-topbar-mobile-toggle" onclick="toggleSidebar()">
-            <span style="cursor:pointer;">&#9776;</span>
-        </div>
+        <div class="arch-topbar-mobile-toggle" onclick="toggleSidebar()">&#9776;</div>
         <div class="arch-menu">
-            <span>Applications</span>
-            <span>Places</span>
-            <span>System</span>
+            <span>Applications</span><span>Places</span><span>System</span>
         </div>
         <div class="arch-workspaces-bar">
             <span class="arch-ws active">1</span>
-            <span class="arch-ws">2</span>
-            <span class="arch-ws">3</span>
-            <span class="arch-ws">4</span>
-            <span class="arch-ws">5</span>
+            <span class="arch-ws">2</span><span class="arch-ws">3</span><span class="arch-ws">4</span><span class="arch-ws">5</span>
         </div>
         <div class="arch-systemtray">
-            <span class="arch-tray-item">&#128246;</span>
-            <span class="arch-tray-item">&#128266;</span>
-            <span class="arch-tray-item">&#128267;</span>
+            <span>&#128246;</span><span>&#128266;</span><span>&#128267;</span>
             <span class="arch-clock">Tue May 06 12:00</span>
         </div>
     </div>
 
     <!-- Desktop Area -->
     <div class="arch-desktop-area">
-        <!-- Date/Time Widget -->
-        <div class="arch-datetime">
-            <div class="arch-time">12:00</div>
-            <div class="arch-date">Tuesday, May 6</div>
-        </div>
-
-        <!-- TUI Stats Window -->
-        <div class="arch-stats-tui">
-            <div class="arch-tui-header">[ SYSTEM MONITOR ]</div>
-            <div class="arch-tui-body">
-                <!-- CPU -->
-                <div class="arch-tui-section">
-                    <div class="arch-tui-title">CPU</div>
-                    <div class="arch-tui-line">Ryzen 7 5800X</div>
-                    <div class="arch-tui-line">52°C</div>
-                    <div class="arch-tui-bar">
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char"></span>
-                        <span class="arch-tui-bar-char"></span>
-                        <span class="arch-tui-bar-char"></span>
-                        <span class="arch-tui-bar-char"></span>
+        <div class="arch-terminal-stack">
+            <div class="arch-terminal">
+                <div class="arch-term-header">
+                    <div class="arch-term-dots">
+                        <span class="arch-term-dot close"></span>
+                        <span class="arch-term-dot minimize"></span>
+                        <span class="arch-term-dot maximize"></span>
                     </div>
+                    <div class="arch-term-title">c-school@academy:~/linux</div>
                 </div>
-                <!-- Memory -->
-                <div class="arch-tui-section">
-                    <div class="arch-tui-title">MEM</div>
-                    <div class="arch-tui-value">6.2G / 16G</div>
-                    <div class="arch-tui-bar">
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char"></span>
-                        <span class="arch-tui-bar-char"></span>
-                    </div>
-                </div>
-                <!-- Disk -->
-                <div class="arch-tui-section">
-                    <div class="arch-tui-title">DISK</div>
-                    <div class="arch-tui-value">42% used</div>
-                    <div class="arch-tui-bar">
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char filled"></span>
-                        <span class="arch-tui-bar-char"></span>
-                        <span class="arch-tui-bar-char"></span>
-                        <span class="arch-tui-bar-char"></span>
-                        <span class="arch-tui-bar-char"></span>
-                    </div>
-                </div>
-                <!-- Network -->
-                <div class="arch-tui-section">
-                    <div class="arch-tui-title">NET</div>
-                    <div class="arch-tui-value">192.168.1.100</div>
-                    <div class="arch-tui-line">12ms</div>
-                </div>
-                <!-- Uptime -->
-                <div class="arch-tui-section">
-                    <div class="arch-tui-title">UPTIME</div>
-                    <div class="arch-tui-value">3d 14h</div>
-                    <div class="arch-tui-line">6.8.7-arch1-1</div>
+                <div class="arch-term-body">
+                    <div><span class="arch-term-prompt">c-school@academy</span>:<span style="color: #00d4aa;">~</span>$ <span class="arch-term-cursor"></span></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Quick Launch Icons -->
-        <div class="arch-icons">
-            <a href="terminal.html" class="arch-icon">
-                <div class="arch-icon-bg" style="background: #1e1e28;">$</div>
-                <span>Terminal</span>
-            </a>
-            <a href="#" class="arch-icon">
-                <div class="arch-icon-bg" style="background: #281e38;">&#128196;</div>
-                <span>Files</span>
-            </a>
-            <a href="#" class="arch-icon">
-                <div class="arch-icon-bg" style="background: #1e2838;">&#127760;</div>
-                <span>Browser</span>
-            </a>
-            <a href="#" class="arch-icon">
-                <div class="arch-icon-bg" style="background: #381e28;">&#128221;</div>
-                <span>Code</span>
-            </a>
+            <div class="arch-terminal">
+                <div class="arch-term-header">
+                    <div class="arch-term-dots">
+                        <span class="arch-term-dot close"></span>
+                        <span class="arch-term-dot minimize"></span>
+                        <span class="arch-term-dot maximize"></span>
+                    </div>
+                    <div class="arch-term-title">c-school@academy:~/exercises</div>
+                </div>
+                <div class="arch-term-body">
+                    <div style="font-size: 0.7rem;"><span class="arch-term-prompt">c-school@academy</span>:<span style="color: #ff6b35;">exercises</span>$ </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -133,41 +63,21 @@
             <span class="arch-dock-icon" style="background: linear-gradient(135deg, #00aaff, #0088cc);">&#127968;</span>
             <span class="arch-dock-label">Home</span>
         </div>
-        <a href="terminal.html" class="arch-dock-item">
+        <div class="arch-dock-item">
             <span class="arch-dock-icon" style="background: linear-gradient(135deg, #00d4aa, #008866);">$</span>
             <span class="arch-dock-label">Terminal</span>
-        </a>
+        </div>
         <div class="arch-dock-item">
             <span class="arch-dock-icon" style="background: linear-gradient(135deg, #ff6b35, #cc4400);">&#128187;</span>
             <span class="arch-dock-label">Linux</span>
-        </div>
-        <div class="arch-dock-item">
-            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #aa00ff, #6600cc);">&#128218;</span>
-            <span class="arch-dock-label">Docs</span>
-        </div>
-        <div class="arch-dock-item">
-            <span class="arch-dock-icon" style="background: linear-gradient(135deg, #ffaa00, #cc8800);">&#128269;</span>
-            <span class="arch-dock-label">Search</span>
         </div>
     </div>
 
     <!-- Mobile Sidebar -->
     <nav class="arch-sidebar" id="mobileSidebar">
-        <a href="index.html" class="arch-sidebar-item active" onclick="toggleSidebar()">
-            <span>&#127968;</span> <span>Home</span>
-        </a>
-        <a href="terminal.html" class="arch-sidebar-item" onclick="toggleSidebar()">
-            <span>$</span> <span>Terminal</span>
-        </a>
-        <div class="arch-sidebar-item" onclick="toggleSidebar()">
-            <span>&#128187;</span> <span>Linux</span>
-        </div>
-        <div class="arch-sidebar-item" onclick="toggleSidebar()">
-            <span>&#128218;</span> <span>Docs</span>
-        </div>
-        <div class="arch-sidebar-item" onclick="toggleSidebar()">
-            <span>&#128269;</span> <span>Search</span>
-        </div>
+        <a href="index.html" class="arch-sidebar-item active" onclick="toggleSidebar()">&#127968; Home</a>
+        <a href="#" class="arch-sidebar-item" onclick="toggleSidebar()">$ Terminal</a>
+        <a href="#" class="arch-sidebar-item" onclick="toggleSidebar()">&#128187; Linux</a>
     </nav>
 
     <script>
@@ -175,6 +85,5 @@
         document.getElementById('mobileSidebar').classList.toggle('open');
     }
     </script>
-
-    <!-- Bottom Dock -->
+</body>
 </html>
