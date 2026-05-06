@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import Layout from './components/Layout'
+import HyprlandLayout from './components/HyprlandLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
+import AgeGroupPage from './pages/AgeGroupPage'
 import HomePage from './pages/HomePage'
 import CoursesPage from './pages/CoursesPage'
 import NotesPage from './pages/NotesPage'
@@ -15,9 +16,14 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/age-group" element={
+            <ProtectedRoute>
+              <AgeGroupPage />
+            </ProtectedRoute>
+          } />
           <Route path="/" element={
             <ProtectedRoute>
-              <Layout />
+              <HyprlandLayout />
             </ProtectedRoute>
           }>
             <Route index element={<HomePage />} />

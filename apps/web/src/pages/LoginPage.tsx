@@ -16,7 +16,8 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login(username, password)
-      navigate('/')
+      const ageGroup = localStorage.getItem('ageGroup')
+      navigate(ageGroup ? '/' : '/age-group')
     } catch (err) {
       setError('Invalid username or password')
     } finally {

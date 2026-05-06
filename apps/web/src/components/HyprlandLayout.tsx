@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Terminal from './Terminal'
 
 const navLinks = [
   { path: '/', label: 'Home' },
@@ -9,7 +10,7 @@ const navLinks = [
   { path: '/search', label: 'Search' },
 ]
 
-export default function Layout() {
+export default function HyprlandLayout() {
   const location = useLocation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -20,8 +21,8 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-56 border-r border-[var(--color-border)] p-4 flex flex-col">
+    <div className="min-h-screen flex gap-4 p-4">
+      <aside className="w-56 border border-[var(--color-border)] rounded-lg p-4 flex flex-col">
         <h1 className="text-xl font-bold mb-8 text-[var(--color-text-h)]">Learn</h1>
         <nav className="flex-1 space-y-1">
           {navLinks.map(link => (
@@ -45,9 +46,14 @@ export default function Layout() {
           </button>
         </div>
       </aside>
-      <main className="flex-1 p-8">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex gap-4">
+        <main className="flex-1 border border-[var(--color-border)] rounded-lg p-8 overflow-auto">
+          <Outlet />
+        </main>
+        <div className="w-[500px] border border-[var(--color-border)] rounded-lg overflow-hidden">
+          <Terminal />
+        </div>
+      </div>
     </div>
   )
 }

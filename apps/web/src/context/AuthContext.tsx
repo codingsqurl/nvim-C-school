@@ -2,16 +2,20 @@ import { createContext, useContext, useState, type ReactNode } from 'react'
 
 export type User = {
   username: string
+  isAdmin: boolean
 }
 
 type AuthContextType = {
   user: User | null
   isAuthenticated: boolean
+  isAdmin: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
+
+const ADMIN_USERS = ['codingsqurl']
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -21,7 +25,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string) => {
     if (username && password) {
-      const userData = { username }
+      const isAdmin = ADMIN_USERS.includes(username)
+      const userData = { username, isAdmin }
       localStorage.setItem('user', JSON.stringify(userData))
       setUser(userData)
     } else {
@@ -35,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isAdmin: user?.isAdmin ?? false, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
