@@ -1,6 +1,0 @@
-/home/codingsqurl/nvim-c-school/cschool-term/target/debug/deps/deranged-c928dce630437191.d: /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/deranged-0.5.8/src/lib.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/deranged-0.5.8/src/unsafe_wrapper.rs
-
-/home/codingsqurl/nvim-c-school/cschool-term/target/debug/deps/libderanged-c928dce630437191.rmeta: /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/deranged-0.5.8/src/lib.rs /home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/deranged-0.5.8/src/unsafe_wrapper.rs
-
-/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/deranged-0.5.8/src/lib.rs:
-/home/codingsqurl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/deranged-0.5.8/src/unsafe_wrapper.rs:
