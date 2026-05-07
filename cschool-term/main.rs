@@ -35,6 +35,7 @@ struct AppState {
     sessions: Mutex<HashMap<String, Arc<Mutex<PtyHandles>>>>,
     meta: Mutex<HashMap<String, TermSession>>,
     working_dirs: Mutex<HashMap<String, PathBuf>>,
+    session_creation_ts: Mutex<Vec<u64>>,
 }
 
 impl Default for AppState {
@@ -43,6 +44,7 @@ impl Default for AppState {
             sessions: Mutex::new(HashMap::new()),
             meta: Mutex::new(HashMap::new()),
             working_dirs: Mutex::new(HashMap::new()),
+            session_creation_ts: Mutex::new(Vec::new()),
         }
     }
 }
@@ -88,10 +90,13 @@ struct ExecResponse {
 struct UserProfile {
     id: String,
     username: String,
+    audience: Option<String>,
     created: u64,
     last_active: u64,
     colorscheme_index: usize,
     stats: UserStats,
+    rpg: Option<RpgState>,
+    schema_version: Option<u32>,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -112,6 +117,20 @@ struct HistoryEntry {
     dir: String,
 }
 
+#[derive(Deserialize, Serialize, Clone, Default)]
+struct RpgState {
+    level: u32,
+    xp: u64,
+    lessons_completed: Vec<LessonRef>,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+struct LessonRef {
+    topic: String,
+    lesson_id: u32,
+    completed_at: u64,
+}
+
 impl Default for UserProfile {
     fn default() -> Self {
         Self {
@@ -123,6 +142,7 @@ impl Default for UserProfile {
                     .as_millis()
             ),
             username: "c-student".into(),
+            audience: None,
             created: now_ms(),
             last_active: now_ms(),
             colorscheme_index: 0,
@@ -135,6 +155,8 @@ impl Default for UserProfile {
                 current_dir: "~".into(),
                 login_time: now_ms(),
             },
+            rpg: None,
+            schema_version: Some(2),
         }
     }
 }
@@ -255,7 +277,13 @@ async fn terminal_page() -> HttpResponse {
 }
 
 async fn serve_static(path: web::Path<String>) -> HttpResponse {
-    let file_path = format!("../assets/{}", path.as_str());
+    let assets_dir = std::path::Path::new("../assets");
+    let requested = std::path::PathBuf::from(path.as_str());
+    // Reject paths that try to escape with ..
+    if requested.components().any(|c| c == std::path::Component::ParentDir) {
+        return HttpResponse::Forbidden().body("Forbidden");
+    }
+    let file_path = assets_dir.join(&requested);
     match fs::read(&file_path) {
         Ok(data) => {
             let ct = if path.ends_with(".css") {
@@ -280,7 +308,12 @@ async fn serve_static(path: web::Path<String>) -> HttpResponse {
 }
 
 async fn serve_school(path: web::Path<String>) -> HttpResponse {
-    let file_path = format!("../SCHOOL/{}", path.as_str());
+    let school_dir = std::path::Path::new("../SCHOOL");
+    let requested = std::path::PathBuf::from(path.as_str());
+    if requested.components().any(|c| c == std::path::Component::ParentDir) {
+        return HttpResponse::Forbidden().body("Forbidden");
+    }
+    let file_path = school_dir.join(&requested);
     match fs::read(&file_path) {
         Ok(data) => {
             let ct = if path.ends_with(".md") {
@@ -302,6 +335,18 @@ async fn create_session(
     req: web::Json<CreateSessionRequest>,
     data: web::Data<AppState>,
 ) -> impl Responder {
+    // Rate limit: max 10 sessions per 60 seconds
+    {
+        let mut ts_list = data.session_creation_ts.lock().unwrap();
+        let now = now_ms();
+        ts_list.retain(|&t| now - t < 60_000);
+        if ts_list.len() >= 10 {
+            return HttpResponse::TooManyRequests().json(serde_json::json!({
+                "error": "Rate limit exceeded. Max 10 sessions per minute."
+            }));
+        }
+        ts_list.push(now);
+    }
     match spawn_pty() {
         Ok((session, handles)) => {
             let id = session.id.clone();

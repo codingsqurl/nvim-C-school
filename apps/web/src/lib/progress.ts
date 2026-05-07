@@ -2,20 +2,23 @@
 
 // ===== PROGRESS TRACKING =====
 
-import type { TopicKey } from '@/types/schema.ts';
+import type { LessonRef, TopicKey } from '@/types/schema.ts';
 import { COURSE_CATALOG } from '@/data/courses.ts';
 
 export interface ProfileStore {
-  get(): { stats: { topics_completed: string[] } };
-  save(profile: { stats: { topics_completed: string[] } }): void;
+  get(): { rpg: { lessons_completed: LessonRef[] } };
+  save(profile: { rpg: { lessons_completed: LessonRef[] } }): void;
 }
 
 export function markLessonComplete(store: ProfileStore, topic: TopicKey, lessonId: number): boolean {
   const profile = store.get();
-  const lessonKey = `${topic}:${lessonId}`;
 
-  if (!profile.stats.topics_completed.includes(lessonKey)) {
-    profile.stats.topics_completed.push(lessonKey);
+  if (!profile.rpg.lessons_completed.find(ref => ref.topic === topic && ref.lesson_id === lessonId)) {
+    profile.rpg.lessons_completed.push({
+      topic,
+      lesson_id: lessonId,
+      completed_at: new Date().toISOString(),
+    });
     store.save(profile);
     return true;
   }
@@ -24,13 +27,16 @@ export function markLessonComplete(store: ProfileStore, topic: TopicKey, lessonI
 
 export function isLessonComplete(store: ProfileStore, topic: TopicKey, lessonId: number): boolean {
   const profile = store.get();
-  return profile.stats.topics_completed.includes(`${topic}:${lessonId}`);
+  return !!profile.rpg.lessons_completed.find(ref => ref.topic === topic && ref.lesson_id === lessonId);
 }
 
 export function getCompletedCount(store: ProfileStore, topic: TopicKey): number {
   const profile = store.get();
-  const prefix = `${topic}:`;
-  return profile.stats.topics_completed.filter(k => k.startsWith(prefix)).length;
+  let count = 0;
+  for (const ref of profile.rpg.lessons_completed) {
+    if (ref.topic === topic) count++;
+  }
+  return count;
 }
 
 export interface CourseProgress {

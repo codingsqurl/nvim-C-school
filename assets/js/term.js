@@ -114,6 +114,8 @@ function submit() {
     state.lines = [];
   } else if (result.output) {
     for (const out of result.output) state.lines.push({ kind: "output", text: out });
+    // Cap scrollback at 10000 lines
+    while (state.lines.length > 10000) state.lines.shift();
   }
   if (result.cwd) state.cwd = result.cwd;
 

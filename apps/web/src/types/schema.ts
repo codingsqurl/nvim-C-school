@@ -77,9 +77,10 @@ export type AttributeKey = CodeKidsAttributeKey | CodeBuildersAttributeKey;
 
 export type CodeKidsAttributes = Record<CodeKidsAttributeKey, number>;
 export type CodeBuildersAttributes = Record<CodeBuildersAttributeKey, number>;
-export type Attributes = CodeKidsAttributes | CodeBuildersAttributes;
-// The runtime narrows by Profile.audience; use an audience-aware accessor in
-// code rather than discriminating on a marker field inside Attributes itself.
+
+export type BrandedCodeKidsAttributes = CodeKidsAttributes & { _audience: 'codekids' };
+export type BrandedCodeBuildersAttributes = CodeBuildersAttributes & { _audience: 'codebuilders' };
+export type Attributes = BrandedCodeKidsAttributes | BrandedCodeBuildersAttributes;
 
 
 // =============================================================================
@@ -124,6 +125,17 @@ export interface InventoryItem {
 }
 
 export type EquippedSlots = Partial<Record<EquipSlot, ItemId>>;
+
+export function validateEquippedSlots(slots: EquippedSlots, audience: Audience): EquippedSlots {
+  const allowed = new Set<string>(SLOTS_BY_AUDIENCE[audience]);
+  const valid: EquippedSlots = {};
+  for (const [slot, itemId] of Object.entries(slots)) {
+    if (allowed.has(slot) && itemId !== undefined) {
+      valid[slot as EquipSlot] = itemId;
+    }
+  }
+  return valid;
+}
 
 
 // =============================================================================

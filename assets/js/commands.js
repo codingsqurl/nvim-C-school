@@ -47,7 +47,7 @@ export const commands = {
         const { node } = resolve(ctx.vfs, target, ctx.cwd);
         if (!node)         { out.push(`cat: ${target}: no such file or directory`); continue; }
         if (isDir(node))   { out.push(`cat: ${target}: is a directory`);             continue; }
-        const text = readFile(node);
+        const text = readFile(node) ?? "";
         for (const line of text.split("\n")) out.push(line);
         if (text.endsWith("\n")) out.pop(); // drop the empty trailing line from final \n
       }
@@ -75,7 +75,8 @@ export const commands = {
 function columnize(names, cols) {
   if (names.length === 0) return [];
   const gap = 2;
-  const maxName = Math.max(...names.map(n => n.length));
+  let maxName = 0;
+  for (const n of names) if (n.length > maxName) maxName = n.length;
   const cellWidth = maxName + gap;
   const nCols = Math.max(1, Math.floor(cols / cellWidth));
   const nRows = Math.ceil(names.length / nCols);

@@ -10,6 +10,8 @@ import { createFreshProfile, migrateV1ToV2 } from '@/store/migrate.ts';
 
 type Status = 'idle' | 'loading' | 'ready' | 'needs_audience';
 
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
 interface ProfileStore {
   profile: Profile | null;
   status: Status;
@@ -60,6 +62,11 @@ export const useProfile = create<ProfileStore>((set, get) => ({
     }
     const next: Profile = { ...profile, ...patch };
     set({ profile: next });
-    await saveProfile(next);
+
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveTimer = null;
+      saveProfile(next);
+    }, 300);
   },
 }));

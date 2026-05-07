@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import type { LoadCourseSuccess } from '@/lib/courses.ts';
 import { loadCourseContent } from '@/lib/courses.ts';
+import { COURSE_CATALOG } from '@/data/courses.ts';
 
 type State =
   | { kind: 'loading' }
@@ -8,12 +10,19 @@ type State =
   | { kind: 'success'; data: LoadCourseSuccess };
 
 export default function Curriculum() {
+  const { topic, lessonId } = useParams<{ topic?: string; lessonId?: string }>();
+  const lessonIdNum = lessonId !== undefined ? Number(lessonId) : undefined;
+
   const [state, setState] = useState<State>({ kind: 'loading' });
 
   useEffect(() => {
+    if (!topic || lessonIdNum === undefined || Number.isNaN(lessonIdNum)) {
+      setState({ kind: 'success', data: null as unknown as LoadCourseSuccess });
+      return;
+    }
     let cancelled = false;
     void (async () => {
-      const result = await loadCourseContent('languages', 2);
+      const result = await loadCourseContent(topic, lessonIdNum);
       if (cancelled) return;
       if ('error' in result) {
         setState({ kind: 'error', message: result.error });
@@ -24,7 +33,41 @@ export default function Curriculum() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [topic, lessonIdNum]);
+
+  const isLessonView = topic && lessonIdNum !== undefined && !Number.isNaN(lessonIdNum);
+
+  if (!isLessonView) {
+    const courses = Object.entries(COURSE_CATALOG);
+    return (
+      <div className="max-w-3xl mx-auto p-6 text-zinc-100">
+        <h1 className="text-3xl font-bold mb-6">Curriculum</h1>
+        <div className="space-y-6">
+          {courses.map(([key, course]) => (
+            <section key={key}>
+              <h2 className="text-xl font-semibold mb-2">
+                {course.icon} {course.name}
+              </h2>
+              <p className="text-zinc-400 text-sm mb-3">{course.description}</p>
+              <ul className="space-y-1">
+                {course.lessons.map((lesson) => (
+                  <li key={lesson.id}>
+                    <Link
+                      to={`/curriculum/${key}/${lesson.id}`}
+                      className="text-blue-400 hover:underline text-sm"
+                    >
+                      {lesson.id}. {lesson.title}
+                    </Link>
+                    <span className="text-zinc-600 text-xs ml-2">{lesson.level}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (state.kind === 'loading') {
     return <div className="p-6 text-zinc-400">loading lesson…</div>;

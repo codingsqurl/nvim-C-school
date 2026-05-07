@@ -4,8 +4,8 @@ import {
 import type {
   Attributes,
   Audience,
-  CodeBuildersAttributes,
-  CodeKidsAttributes,
+  BrandedCodeBuildersAttributes,
+  BrandedCodeKidsAttributes,
   LessonRef,
   Profile,
   ProfileStats,
@@ -15,19 +15,21 @@ import type {
 
 export function defaultAttributes(audience: Audience): Attributes {
   if (audience === 'codekids') {
-    const attrs: CodeKidsAttributes = {
+    const attrs: BrandedCodeKidsAttributes = {
       curiosity: 0,
       courage: 0,
       creativity: 0,
       kindness: 0,
+      _audience: 'codekids' as const,
     };
     return attrs;
   }
-  const attrs: CodeBuildersAttributes = {
+  const attrs: BrandedCodeBuildersAttributes = {
     logic: 0,
     systems: 0,
     craft: 0,
     speed: 0,
+    _audience: 'codebuilders' as const,
   };
   return attrs;
 }

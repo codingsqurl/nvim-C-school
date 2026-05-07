@@ -21,7 +21,7 @@ export function normalizePath(input: string, cwd: string = "/"): string {
   const stack: string[] = [];
   for (const part of parts) {
     if (part === ".") continue;
-    if (part === "..") { stack.pop(); continue; }
+    if (part === "..") { if (stack.length > 0) stack.pop(); continue; }
     stack.push(part);
   }
   return "/" + stack.join("/");

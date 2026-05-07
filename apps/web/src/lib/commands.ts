@@ -93,7 +93,8 @@ export const commands: { [name: string]: CommandHandler } = {
 function columnize(names: string[], cols: number): string[] {
   if (names.length === 0) return [];
   const gap = 2;
-  const maxName = Math.max(...names.map(n => n.length));
+  let maxName = 0;
+  for (const n of names) if (n.length > maxName) maxName = n.length;
   const cellWidth = maxName + gap;
   const nCols = Math.max(1, Math.floor(cols / cellWidth));
   const nRows = Math.ceil(names.length / nCols);

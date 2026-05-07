@@ -14,7 +14,7 @@ export const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { path: '/', loader: () => redirect('/curriculum') },
-      { path: '/curriculum', element: <Curriculum /> },
+      { path: '/curriculum/:topic?/:lessonId?', element: <Curriculum /> },
       { path: '/exercises', element: <Exercises /> },
       { path: '/arcade', element: <Arcade /> },
       { path: '/concepts', element: <Concepts /> },

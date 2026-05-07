@@ -128,33 +128,10 @@
     // ===== MARKDOWN FORMATTING =====
 
     function formatMarkdownForTerminal(md) {
-        let lines = md.split('\n');
-        let out = [];
-        let inCode = false;
-        let codeBuf = [];
-        for (let line of lines) {
-            const esc = line.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            if (line.startsWith('```')) {
-                if (inCode) {
-                    out.push('<span style="background:var(--nvim-selection);padding:2px 6px;display:inline-block;width:100%;white-space:pre;box-sizing:border-box">' + codeBuf.join('<br>') + '</span>');
-                    codeBuf = [];
-                }
-                inCode = !inCode;
-                continue;
-            }
-            if (inCode) { codeBuf.push(esc); continue; }
-            if (line.startsWith('# ')) out.push('<span style="color:var(--nvim-green);font-weight:bold;font-size:1.1em">' + esc.replace(/^# /,'  ') + '</span>');
-            else if (line.startsWith('## ')) out.push('<span style="color:var(--nvim-green);font-weight:bold">' + esc.replace(/^## /,'  ') + '</span>');
-            else if (line.startsWith('### ')) out.push('<span style="color:var(--accent2);font-weight:bold">' + esc.replace(/^### /,'  ') + '</span>');
-            else if (line.startsWith('#### ') || line.startsWith('##### ')) out.push('<span style="color:var(--accent2)">' + esc + '</span>');
-            else if (line.startsWith('> ')) out.push('<span style="opacity:0.75;font-style:italic">  ' + esc.replace(/^> /,'') + '</span>');
-            else if (line.startsWith('---')) out.push('<span style="opacity:0.3">──────────────────────────────────────</span>');
-            else if (line.startsWith('- ') || line.startsWith('* ') || line.match(/^\d+\. /)) out.push('<span style="color:var(--nvim-fg)">' + esc + '</span>');
-            else if (line.startsWith('|')) out.push('<span style="opacity:0.8;font-family:monospace">' + esc + '</span>');
-            else if (line.trim() === '') out.push('');
-            else out.push('<span style="color:var(--nvim-fg)">' + esc + '</span>');
+        if (typeof renderMarkdownInline === 'function') {
+            return renderMarkdownInline(md);
         }
-        return out.join('<br>');
+        return md.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
     }
 
     async function fetchCourseContent(topicKey, lessonNum) {

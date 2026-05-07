@@ -11,6 +11,11 @@ export default defineConfig({
     },
   },
   server: {
+    proxy: {
+      '/api': 'http://localhost:8080',
+      '/SCHOOL': 'http://localhost:8080',
+      '/assets': 'http://localhost:8080',
+    },
     fs: {
       // Allow serving SCHOOL/ via the public/SCHOOL symlink (target lives at repo root).
       allow: ['..', '../..'],
