@@ -17,7 +17,7 @@ export function markLessonComplete(store: ProfileStore, topic: TopicKey, lessonI
     profile.rpg.lessons_completed.push({
       topic,
       lesson_id: lessonId,
-      completed_at: new Date().toISOString(),
+      completed_at: Date.now(),
     });
     store.save(profile);
     return true;
