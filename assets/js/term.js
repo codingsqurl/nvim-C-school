@@ -24,6 +24,22 @@ async function boot() {
   render();
 }
 
+// Measure how many monospace characters fit on one line of the terminal body.
+function terminalCols() {
+  const body = document.querySelector(".arch-term-body");
+  if (!body) return 80;
+  const probe = document.createElement("span");
+  probe.style.visibility = "hidden";
+  probe.style.whiteSpace = "pre";
+  probe.textContent = "0".repeat(80);
+  body.appendChild(probe);
+  const charW = probe.getBoundingClientRect().width / 80;
+  probe.remove();
+  const style = getComputedStyle(body);
+  const inner = body.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  return Math.max(20, Math.floor(inner / charW));
+}
+
 function shortCwd(cwd) {
   if (cwd === HOME) return "~";
   if (cwd.startsWith(HOME + "/")) return "~" + cwd.slice(HOME.length);
@@ -93,7 +109,7 @@ function submit() {
   const line = state.buffer;
   state.lines.push({ kind: "submitted", cwd: state.cwd, text: line });
 
-  const result = execute(line, { vfs: state.vfs, cwd: state.cwd });
+  const result = execute(line, { vfs: state.vfs, cwd: state.cwd, cols: terminalCols() });
   if (result.clear) {
     state.lines = [];
   } else if (result.output) {
@@ -161,15 +177,16 @@ function currentLineHTML() {
 function render() {
   const body = document.querySelector(".arch-term-body");
   if (!body) return;
+  const ws = ` style="white-space:pre-wrap"`;
   const parts = [];
   for (const l of state.lines) {
     if (l.kind === "submitted") {
-      parts.push(`<div>${promptHTML(l.cwd)}${escapeHtml(l.text)}</div>`);
+      parts.push(`<div${ws}>${promptHTML(l.cwd)}${escapeHtml(l.text)}</div>`);
     } else {
-      parts.push(`<div>${escapeHtml(l.text)}</div>`);
+      parts.push(`<div${ws}>${escapeHtml(l.text)}</div>`);
     }
   }
-  parts.push(`<div>${currentLineHTML()}</div>`);
+  parts.push(`<div${ws}>${currentLineHTML()}</div>`);
   body.innerHTML = parts.join("");
   body.scrollTop = body.scrollHeight;
 }
