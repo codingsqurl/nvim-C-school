@@ -441,13 +441,14 @@ body {
     background: var(--nvim-subtle);
     border: 1px solid var(--arch-border);
     border-radius: 6px;
-    overflow: visible;
+    overflow: hidden;
     box-shadow: 
         0 6px 24px rgba(0, 0, 0, 0.4),
         0 2px 6px rgba(0, 0, 0, 0.25);
     display: flex;
     flex-direction: column;
     position: relative;
+    transition: opacity 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Terminal styling */
@@ -488,9 +489,24 @@ body {
     opacity: 1;
 }
 
-.arch-terminal.active .term-prompt::after {
-    content: '_';
-    animation: blink 1s infinite;
+/* Terminal prompt display area (exercises terminal) */
+.term-prompt {
+    flex: 1;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--nvim-fg);
+    overflow-y: auto;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 0;
+}
+
+.arch-terminal:not(.active) .cursor {
+    animation: none;
+    opacity: 0.4;
 }
 
 @keyframes blink {
@@ -500,19 +516,14 @@ body {
 
 /* Cursor blink animation */
 
-
 .cursor {
     display: inline-block;
     width: 8px;
     height: 14px;
     background: var(--nvim-green);
+    color: transparent;
     animation: blink 1s infinite;
     vertical-align: middle;
-}
-
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
 }
 
 .arch-terminal:not(.active) {
@@ -661,21 +672,6 @@ body {
 }
 
 /* ========== TERMINAL WINDOW ========== */
-.arch-terminal {
-    width: 100%;
-    max-width: 700px;
-    height: 50%;
-    background: var(--arch-surface);
-    border: 1px solid var(--arch-border);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-
-.arch-terminal:hover {
-    border-color: var(--accent);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px var(--accent-glow);
-}
 
 .arch-term-header {
     height: 4px;
@@ -733,11 +729,6 @@ body {
     background: var(--accent);
     animation: blink 1s infinite;
     vertical-align: middle;
-}
-
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
 }
 
 /* Mobile */
@@ -808,4 +799,179 @@ body {
     .arch-dock-label {
         font-size: 0.45rem;
     }
+
+    /* Terminal stack vertical layout on mobile */
+    .arch-desktop-area {
+        flex-direction: column;
+    }
+
+    .arch-welcome {
+        flex: 0 0 auto;
+        max-height: 35%;
+    }
+
+    .arch-terminal-stack {
+        flex: 1;
+        width: 100%;
+        max-width: none;
+        min-height: 0;
+    }
+
+    .arch-terminal:first-child {
+        flex: 1 1 60%;
+        min-height: 80px;
+    }
+
+    .arch-terminal:last-child {
+        flex: 0 0 35%;
+        min-height: 0;
+        max-height: 40%;
+    }
+}
+
+/* ========== XTERM.JS INTEGRATION ========== */
+.xterm-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: 8px;
+    box-sizing: border-box;
+    background: var(--nvim-bg);
+}
+
+.xterm-container .xterm {
+    height: 100%;
+    padding: 0;
+}
+
+/* xterm.js viewport scrollbar - override global hide */
+.xterm-container .xterm-viewport {
+    scrollbar-width: thin;
+    scrollbar-color: var(--nvim-green) var(--nvim-subtle);
+}
+
+.xterm-container .xterm-viewport::-webkit-scrollbar {
+    display: block !important;
+    width: 6px !important;
+    height: auto !important;
+}
+
+.xterm-container .xterm-viewport::-webkit-scrollbar-track {
+    background: var(--nvim-subtle);
+}
+
+.xterm-container .xterm-viewport::-webkit-scrollbar-thumb {
+    background: var(--nvim-green);
+    border-radius: 3px;
+}
+
+.xterm-container .xterm-viewport::-webkit-scrollbar-thumb:hover {
+    background: var(--nvim-accent);
+}
+
+/* xterm.js selection overlay */
+.xterm .xterm-selection-layer {
+    opacity: 0.3;
+}
+
+/* Override terminal overflow for xterm compatibility */
+#term1 {
+    overflow: hidden;
+}
+
+#term1.active {
+    border-color: var(--nvim-green);
+    box-shadow:
+        0 6px 24px rgba(0, 0, 0, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.25),
+        0 0 20px var(--nvim-green);
+}
+
+/* Hide old term-input when xterm is active */
+#term1 .term-input {
+    display: none;
+}
+
+/* ========== COURSE CONTENT (WELCOME PANEL) ========== */
+.course-content {
+    padding: 16px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.course-title {
+    font-size: 1.1rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--nvim-green);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--arch-border);
+}
+
+.course-body {
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--nvim-fg);
+}
+
+.course-body h2 {
+    font-size: 0.95rem;
+    color: var(--nvim-green);
+    margin: 16px 0 6px;
+}
+
+.course-body h3 {
+    font-size: 0.85rem;
+    color: var(--nvim-accent);
+    margin: 12px 0 4px;
+}
+
+.course-body code {
+    background: var(--nvim-subtle);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+}
+
+.course-body pre {
+    background: var(--nvim-subtle);
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 8px 0;
+    font-size: 0.72rem;
+}
+
+.course-body ul, .course-body ol {
+    padding-left: 20px;
+    margin: 6px 0;
+}
+
+.course-body li {
+    margin: 3px 0;
+}
+
+/* Allow term2 to scroll for long command output */
+#term2 .term-prompt {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--nvim-green) var(--nvim-subtle);
+}
+
+#term2 .term-prompt::-webkit-scrollbar {
+    display: block !important;
+    width: 4px !important;
+    height: auto !important;
+}
+
+#term2 .term-prompt::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#term2 .term-prompt::-webkit-scrollbar-thumb {
+    background: var(--nvim-green);
+    border-radius: 2px;
 }

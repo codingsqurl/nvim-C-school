@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::{Read, Write};
 use std::path::PathBuf;
+use std::process::Command;
 use std::sync::{Arc, Mutex};
 
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
@@ -33,6 +34,7 @@ struct PtyHandles {
 struct AppState {
     sessions: Mutex<HashMap<String, Arc<Mutex<PtyHandles>>>>,
     meta: Mutex<HashMap<String, TermSession>>,
+    working_dirs: Mutex<HashMap<String, PathBuf>>,
 }
 
 impl Default for AppState {
@@ -40,6 +42,7 @@ impl Default for AppState {
         Self {
             sessions: Mutex::new(HashMap::new()),
             meta: Mutex::new(HashMap::new()),
+            working_dirs: Mutex::new(HashMap::new()),
         }
     }
 }
@@ -62,6 +65,21 @@ struct CreateSessionRequest {
 struct ResizeRequest {
     cols: u16,
     rows: u16,
+}
+
+#[derive(Deserialize)]
+struct ExecRequest {
+    session_id: String,
+    #[allow(dead_code)]
+    user_id: Option<String>,
+    command: String,
+}
+
+#[derive(Serialize)]
+struct ExecResponse {
+    output: String,
+    working_dir: String,
+    prompt: String,
 }
 
 // ── Profile types ────────────────────────────────────────
@@ -237,7 +255,7 @@ async fn terminal_page() -> HttpResponse {
 }
 
 async fn serve_static(path: web::Path<String>) -> HttpResponse {
-    let file_path = format!("../{}", path.as_str());
+    let file_path = format!("../assets/{}", path.as_str());
     match fs::read(&file_path) {
         Ok(data) => {
             let ct = if path.ends_with(".css") {
@@ -252,6 +270,25 @@ async fn serve_static(path: web::Path<String>) -> HttpResponse {
                 "image/png"
             } else if path.ends_with(".woff2") {
                 "font/woff2"
+            } else {
+                "application/octet-stream"
+            };
+            HttpResponse::Ok().content_type(ct).body(data)
+        }
+        Err(_) => HttpResponse::NotFound().body("Not found"),
+    }
+}
+
+async fn serve_school(path: web::Path<String>) -> HttpResponse {
+    let file_path = format!("../SCHOOL/{}", path.as_str());
+    match fs::read(&file_path) {
+        Ok(data) => {
+            let ct = if path.ends_with(".md") {
+                "text/markdown; charset=utf-8"
+            } else if path.ends_with(".css") {
+                "text/css"
+            } else if path.ends_with(".js") {
+                "application/javascript"
             } else {
                 "application/octet-stream"
             };
@@ -360,8 +397,8 @@ async fn ws_handler(
         Some(h) => h,
         None => {
             return Ok(HttpResponse::NotFound()
-                .content_type("text/plain")
-                .body("Session not found. Create one via POST /api/session"));
+                .content_type("application/json")
+                .body(r#"{"error":"Session not found. Create one via POST /api/session"}"#));
         }
     };
 
@@ -369,8 +406,8 @@ async fn ws_handler(
         Some(rx) => rx,
         None => {
             return Ok(HttpResponse::NotFound()
-                .content_type("text/plain")
-                .body("Session metadata not found"));
+                .content_type("application/json")
+                .body(r#"{"error":"Session metadata not found"}"#));
         }
     };
 
@@ -503,6 +540,91 @@ async fn load_profile_handler(path: web::Path<String>) -> impl Responder {
     }
 }
 
+// ── Command exec API (fallback for exercises terminal) ────
+
+fn format_prompt(cwd: &PathBuf, home: &PathBuf) -> String {
+    let display = cwd
+        .strip_prefix(home)
+        .map(|p| format!("~{}", p.display()))
+        .unwrap_or_else(|_| cwd.display().to_string());
+    format!("c-school@academy:{} $ ", display)
+}
+
+async fn exec_command(
+    body: web::Json<ExecRequest>,
+    data: web::Data<AppState>,
+) -> impl Responder {
+    let mut working_dirs = data.working_dirs.lock().unwrap();
+    let sid = &body.session_id;
+    let home = home_dir();
+
+    let cwd = working_dirs
+        .entry(sid.clone())
+        .or_insert_with(|| home.clone())
+        .clone();
+
+    let command = body.command.trim();
+    let cmd_lower = command.to_lowercase();
+
+    if cmd_lower == "cd" {
+        working_dirs.insert(sid.clone(), home.clone());
+        return HttpResponse::Ok().json(ExecResponse {
+            output: String::new(),
+            working_dir: home.display().to_string(),
+            prompt: format_prompt(&home, &home),
+        });
+    }
+
+    if cmd_lower.starts_with("cd ") {
+        let target = command[3..].trim();
+        let new_dir = if target == "~" || target == "~/" {
+            home.clone()
+        } else if target.starts_with('/') {
+            PathBuf::from(target)
+        } else {
+            cwd.join(target)
+        };
+
+        if new_dir.is_dir() {
+            let wd = new_dir.clone();
+            working_dirs.insert(sid.clone(), wd.clone());
+            return HttpResponse::Ok().json(ExecResponse {
+                output: String::new(),
+                working_dir: wd.display().to_string(),
+                prompt: format_prompt(&wd, &home),
+            });
+        } else {
+            return HttpResponse::Ok().json(ExecResponse {
+                output: format!("cd: {}: No such file or directory\n", target),
+                working_dir: cwd.display().to_string(),
+                prompt: format_prompt(&cwd, &home),
+            });
+        }
+    }
+
+    match Command::new("/bin/sh")
+        .arg("-c")
+        .arg(command)
+        .current_dir(&cwd)
+        .output()
+    {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            let combined = format!("{}{}", stdout, stderr);
+
+            HttpResponse::Ok().json(ExecResponse {
+                output: combined,
+                working_dir: cwd.display().to_string(),
+                prompt: format_prompt(&cwd, &home),
+            })
+        }
+        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
+            "error": format!("Command execution failed: {}", e)
+        })),
+    }
+}
+
 // ── Main ──────────────────────────────────────────────────
 
 #[actix_web::main]
@@ -512,7 +634,7 @@ async fn main() -> std::io::Result<()> {
     println!("╔══════════════════════════════════════════╗");
     println!("║   C-SCHOOL Terminal Server v0.2.0        ║");
     println!("║   Real PTY bash via WebSocket            ║");
-    println!("║   http://localhost:8080                   ║");
+    println!("║   http://0.0.0.0:8080                      ║");
     println!("╚══════════════════════════════════════════╝");
 
     let _ = ensure_profile_dir();
@@ -525,14 +647,16 @@ async fn main() -> std::io::Result<()> {
             .route("/", web::get().to(index))
             .route("/terminal", web::get().to(terminal_page))
             .route("/assets/{path:.*}", web::get().to(serve_static))
+            .route("/SCHOOL/{path:.*}", web::get().to(serve_school))
             .route("/api/session", web::post().to(create_session))
             .route("/api/status", web::get().to(term_status))
             .route("/api/session/{session_id}", web::delete().to(kill_session))
             .route("/api/ws/{session_id}", web::get().to(ws_handler))
             .route("/api/profile/save", web::post().to(save_profile_handler))
             .route("/api/profile/{id}", web::get().to(load_profile_handler))
+            .route("/api/exec", web::post().to(exec_command))
     })
-    .bind("127.0.0.1:8080")?
+    .bind("0.0.0.0:8080")?
     .run()
     .await
 }
