@@ -1,0 +1,20 @@
+# Build artifacts
+assets/js/vfs.json
+
+# Node
+node_modules/
+*.tsbuildinfo
+
+# Vite
+dist/
+.vite/
+coverage/
+
+# Rust
+target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

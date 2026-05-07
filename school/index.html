@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>c-school // arch</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>_arch</text></svg>">
+    <script src="assets/js/courses.js"></script>
+<script>
+    const API_BASE = '';
+    let activeTerminal = 'term1';
+
+    // ===== USER PROFILE =====
+
+    function getUserProfile() {
+        let profile = localStorage.getItem('c-school-profile');
+        if (!profile) {
+            profile = {
+                id: Math.random().toString(36).substr(2, 9),
+                username: 'c-student',
+                created: Date.now(),
+                last_active: Date.now(),
+                colorscheme_index: Math.floor(Math.random() * colorschemes.length),
+                stats: {
+                    commands_executed: 0,
+                    sessions_started: 0,
+                    time_spent: 0,
+                    topics_completed: [],
+                    command_history: [],
+                    current_dir: '~',
+                    login_time: Date.now()
+                }
+            };
+            localStorage.setItem('c-school-profile', JSON.stringify(profile));
+        }
+        return JSON.parse(profile);
+    }
+
+    function saveUserProfile(profile) {
+        profile.last_active = Date.now();
+        localStorage.setItem('c-school-profile', JSON.stringify(profile));
+        fetch(API_BASE + '/api/profile/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ profile: profile })
+        }).catch(() => {});
+    }
+
+    // Time tracking
+    setInterval(() => {
+        const profile = getUserProfile();
+        profile.stats.time_spent = (profile.stats.time_spent || 0) + 1;
+        localStorage.setItem('c-school-profile', JSON.stringify(profile));
+    }, 1000);
+
+    // ===== COLORSCHEMES =====
+
+    const colorschemes = [
+        { name: 'One Dark', bg: '#282c34', fg: '#abb2bf', green: '#98c379', subtle: '#2c313c', selection: '#3e4451' },
+        { name: 'Monokai Pro', bg: '#2d2a2e', fg: '#fcfcfa', green: '#ff6188', subtle: '#383440', selection: '#4c414f' },
+        { name: 'Night Owl', bg: '#011526', fg: '#c5c8c6', green: '#7aa5ff', subtle: '#0b2942', selection: '#11284f' },
+        { name: 'Tokyo Night', bg: '#1a1b26', fg: '#a9b1d6', green: '#7aa2f7', subtle: '#24283b', selection: '#283457' },
+        { name: 'Dracula', bg: '#282a36', fg: '#f8f8f2', green: '#bd93f9', subtle: '#303341', selection: '#44475a' },
+        { name: 'Gruvbox', bg: '#282828', fg: '#ebdbb2', green: '#b8bb26', subtle: '#32302f', selection: '#3c3836' },
+        { name: 'Nord', bg: '#2e3440', fg: '#d8dee9', green: '#88c0d0', subtle: '#3b4252', selection: '#434c5e' },
+        { name: 'Everforest', bg: '#2d3530', fg: '#d3c6aa', green: '#a7c080', subtle: '#232d28', selection: '#3d4740' },
+        { name: 'Catppuccin', bg: '#1e1e2e', fg: '#cdd6f4', green: '#a6e3a1', subtle: '#181825', selection: '#313244' },
+        { name: 'Rose Pine', bg: '#191724', fg: '#e0def4', green: '#ebbcba', subtle: '#1f1a2e', selection: '#2a262d' },
+        { name: 'Andromeda', bg: '#262a39', fg: '#d6d6d6', green: '#62a3da', subtle: '#1e2333', selection: '#323850' },
+        { name: 'Hybrid', bg: '#1d1d1d', fg: '#c5c5c5', green: '#d13e5e', subtle: '#262626', selection: '#333333' },
+        { name: 'Paper (Light)', bg: '#fafaf6', fg: '#4a4a4a', green: '#c75c68', subtle: '#eee', selection: '#dedede' },
+        { name: 'Pencil (Light)', bg: '#fffaf6', fg: '#5c5c5c', green: '#d65d0e', subtle: '#f5f0e6', selection: '#f0e6d6' },
+        { name: 'Tomorrow Night', bg: '#1d1f21', fg: '#c5c8c6', green: '#b5bd68', subtle: '#282a2e', selection: '#3a3d3e' }
+    ];
+
+    function applyColorscheme(index) {
+        const scheme = colorschemes[index];
+        document.documentElement.style.setProperty('--nvim-bg', scheme.bg);
+        document.documentElement.style.setProperty('--nvim-fg', scheme.fg);
+        document.documentElement.style.setProperty('--nvim-green', scheme.green);
+        document.documentElement.style.setProperty('--nvim-accent', scheme.green);
+        document.documentElement.style.setProperty('--nvim-subtle', scheme.subtle);
+        document.documentElement.style.setProperty('--nvim-selection', scheme.selection);
+    }
+
+    // ===== COURSE CATALOG (loaded from assets/js/courses.js) =====
+    // COURSE_CATALOG and SCHOOLS are defined in courses.js
+    // lesson format in courses.js: [{ id, title, file, level }]
+    // We normalize to the legacy interface for compatibility
+
+    function courseDesc(c) { return c.description || c.desc || ''; }
+    function courseTag(c) { return c.tag || c.path || ''; }
+    function lessonList(c) { return c.lessons || []; }
+    function lessonById(c, id) { return lessonList(c).find(l => l.id === id) || null; }
+
+    function findCourse(query) {
+        const q = query.toLowerCase();
+        if (typeof COURSE_CATALOG === 'undefined') return null;
+        for (const [key, course] of Object.entries(COURSE_CATALOG)) {
+            if (key === q || course.name.toLowerCase() === q ||
+                key.startsWith(q) || course.name.toLowerCase().startsWith(q)) {
+                return { key, ...course };
+            }
+        }
+        return null;
+    }
+
+    // ===== WELCOME PANEL STATE =====
+    let originalWelcomeHTML = '';
+    let previousWelcomeHTML = '';
+    let previousTerm2View = null;
+
+    function updateWelcomePanel(html) {
+        previousWelcomeHTML = document.querySelector('.arch-welcome').innerHTML;
+        document.querySelector('.arch-welcome').innerHTML = html;
+        document.querySelector('.arch-welcome').scrollTop = 0;
+    }
+
+    function showHome() {
+        if (originalWelcomeHTML) {
+            previousWelcomeHTML = document.querySelector('.arch-welcome').innerHTML;
+            document.querySelector('.arch-welcome').innerHTML = originalWelcomeHTML;
+        }
+    }
+
+    // ===== MARKDOWN FORMATTING =====
+
+    function formatMarkdownForTerminal(md) {
+        if (typeof renderMarkdownInline === 'function') {
+            return renderMarkdownInline(md);
+        }
+        return md.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+    }
+
+    async function fetchCourseContent(topicKey, lessonNum) {
+        const course = COURSE_CATALOG[topicKey];
+        if (!course) return null;
+        const lesson = lessonNum ? lessonById(course, lessonNum) : null;
+        if (lessonNum && !lesson) return null;
+        if (!lesson) return { course, lesson: null };
+        try {
+            const resp = await fetch('/' + lesson.file);
+            if (!resp.ok) return { course, lesson, content: '[Content not available]' };
+            const text = await resp.text();
+            return { course, lesson, content: text };
+        } catch {
+            return { course, lesson, content: '[Error fetching content]' };
+        }
+    }
+
+    // ===== COLON COMMAND HANDLER =====
+
+    async function handleColonCommand(rawCmd, termContent) {
+        const parts = rawCmd.replace(/^:/, '').trim().split(/\s+/);
+        const cmd = parts[0] || '';
+        const args = parts.slice(1);
+        const profile = getUserProfile();
+        let output = '';
+
+        switch (cmd) {
+            case 'h': case 'help':
+                output = `<span style="color:var(--nvim-green);font-weight:bold">── C-SCHOOL Commands ──</span><br>
+<span style="color:var(--accent2)">:h, :help</span>       Show this help<br>
+<span style="color:var(--accent2)">:c, :courses</span>    List all courses<br>
+<span style="color:var(--accent2)">:l, :learn</span>      Navigate to a course or lesson<br>
+<span style="color:var(--accent2)">:set, :settings</span> Toggle settings panel<br>
+<span style="color:var(--accent2)">:home</span>          Return to welcome panel<br>
+<span style="color:var(--accent2)">:cl, :clear</span>    Clear this terminal<br>
+<span style="color:var(--accent2)">:stats</span>         Show user statistics<br>
+<span style="color:var(--accent2)">:whoami</span>        Show current user<br>
+<span style="color:var(--accent2)">:back</span>          Go back to previous view<br>
+<span style="color:var(--accent2)">:theme &lt;name&gt;</span>  Change colorscheme<br>
+<span style="color:var(--accent2)">:q, :exit</span>      Close session<br><br>
+<span style="opacity:0.6">Examples: :learn linux | :learn python 1 | :theme dracula</span>`;
+                return { output };
+
+            case 'c': case 'courses':
+                let list = '';
+                for (const [key, c] of Object.entries(COURSE_CATALOG)) {
+                    const count = lessonList(c).length;
+                    list += `<span style="color:var(--nvim-green);font-weight:bold">  ${c.name}</span> <span style="opacity:0.5">(${count} lesson${count!==1?'s':''})</span> — ${courseDesc(c)}<br>`;
+                }
+                output = `<span style="color:var(--nvim-green);font-weight:bold">── Available Courses ──</span><br>${list}<br>
+<span style="opacity:0.6">Use :learn &lt;course&gt; to start. e.g., :learn linux</span>`;
+                updateWelcomePanel(`<h1>COURSES</h1>
+                    <p style="font-size:0.7rem;line-height:1.6">${Object.entries(COURSE_CATALOG).map(([k,c]) =>
+                        `<span style="color:var(--nvim-green);font-weight:bold">${c.name}</span> — ${courseDesc(c)}<br>`
+                    ).join('')}</p>
+                    <p style="color:var(--arch-dim);font-size:0.6rem;margin-top:8px">Type <span style="color:var(--nvim-green)">:learn &lt;name&gt;</span> in term2</p>`);
+                return { output };
+
+            case 'l': case 'learn':
+                if (args.length === 0) {
+                    output = `<span style="color:#ff6b6b">Usage: :learn &lt;course&gt; [lesson]</span><br>e.g. :learn linux | :learn python 1`;
+                    return { output };
+                }
+                const topic = args[0].toLowerCase();
+                const found = findCourse(topic);
+                if (!found) {
+                    output = `<span style="color:#ff6b6b">Course not found: ${args[0]}</span><br>Try :courses to see available courses.`;
+                    return { output };
+                }
+                const lessonNum = args[1] ? parseInt(args[1]) : null;
+
+                if (lessonNum !== null) {
+                    const result = await fetchCourseContent(found.key, lessonNum);
+                    if (!result || !result.lesson) {
+                        const availNames = lessonList(found).map(l => l.id + ': ' + l.title).join(', ');
+                        output = `<span style="color:#ff6b6b">Lesson ${lessonNum} not found in ${found.name}.</span><br>
+Available: ${availNames}`;
+                        return { output };
+                    }
+                    // Update welcome panel (keep compact for mobile)
+                    updateWelcomePanel(`<h1>${found.name} #${lessonNum}</h1>
+                        <p style="color:var(--nvim-green);font-weight:bold;font-size:0.85rem">${result.lesson.title}</p>
+                        <p style="color:var(--arch-dim);font-size:0.6rem;margin-top:6px">SCHOOL/${courseTag(found)}/</p>
+                        <p style="color:var(--arch-dim);font-size:0.55rem;margin-top:8px">:back to return | :learn ${found.key} for overview</p>`);
+                    output = `<span style="color:var(--nvim-green);font-weight:bold">── ${found.name}: ${result.lesson.title} ──</span><br><br>` +
+                        formatMarkdownForTerminal(result.content);
+                    return { output };
+                }
+
+                // Show course overview
+                const lessonStr = lessonList(found).map(l =>
+                    `<span style="color:var(--accent2)">  ${l.id}.</span> ${l.title}`
+                ).join('<br>') || '<span style="opacity:0.5">  No lessons yet</span>';
+                updateWelcomePanel(`<h1>${found.name}</h1>
+                    <p style="font-size:0.7rem;line-height:1.5">${courseDesc(found)}</p>
+                    <div style="margin-top:8px;font-size:0.65rem;line-height:1.8">
+                        ${lessonList(found).map(l =>
+                            `<div><span style="color:var(--nvim-green)">${l.id}.</span> ${l.title}</div>`
+                        ).join('')}
+                    </div>
+                    <p style="color:var(--arch-dim);font-size:0.55rem;margin-top:8px">:learn ${found.key} &lt;n&gt; to open a lesson</p>`);
+                output = `<span style="color:var(--nvim-green);font-weight:bold">── ${found.name} ──</span><br>
+  ${courseDesc(found)}<br><br>
+<span style="color:var(--accent2);font-weight:bold">Lessons:</span><br>${lessonStr}<br><br>
+<span style="opacity:0.6">Type :learn ${found.key} &lt;num&gt; to open a lesson</span>`;
+                return { output };
+
+            case 'set': case 'settings':
+                toggleSettings();
+                output = `<span style="color:var(--accent2)">Toggled settings panel.</span>`;
+                return { output };
+
+            case 'home':
+                showHome();
+                output = `<span style="color:var(--accent2)">Returned to home.</span>`;
+                return { output };
+
+            case 'cl': case 'clear':
+                termContent.lines = [];
+                return { output: '' };
+
+            case 'stats':
+                output = `<span style="color:var(--nvim-green);font-weight:bold">── Statistics ──</span><br>
+  Commands executed: ${profile.stats.commands_executed}<br>
+  Sessions started:  ${profile.stats.sessions_started}<br>
+  Time active:       ${Math.floor(profile.stats.time_spent / 60)}m ${profile.stats.time_spent % 60}s<br>
+  Topics completed:  ${profile.stats.topics_completed.length > 0 ? profile.stats.topics_completed.join(', ') : 'none'}<br>
+  Current dir:       ${profile.stats.current_dir}`;
+                return { output };
+
+            case 'whoami':
+                output = `<span style="color:var(--accent2)">${profile.username}</span>`;
+                return { output };
+
+            case 'q': case 'exit':
+                profile.stats.sessions_started++;
+                profile.stats.login_time = Date.now();
+                saveUserProfile(profile);
+                showHome();
+                output = `<span style="color:#ff6b6b">Session ended. Goodbye!</span>`;
+                return { output };
+
+            case 'theme':
+                if (args.length === 0) {
+                    output = `<span style="color:#ff6b6b">Usage: :theme &lt;name|random&gt;</span><br>
+Available: ${colorschemes.map(c => c.name).join(', ')}`;
+                    return { output };
+                }
+                const themeQuery = args[0].toLowerCase();
+                let idx = -1;
+                if (themeQuery === 'random') {
+                    idx = Math.floor(Math.random() * colorschemes.length);
+                } else {
+                    idx = colorschemes.findIndex(c => c.name.toLowerCase() === themeQuery ||
+                        c.name.toLowerCase().startsWith(themeQuery));
+                }
+                if (idx === -1) {
+                    output = `<span style="color:#ff6b6b">Theme not found: ${args[0]}</span><br>
+Available: ${colorschemes.map(c => c.name).join(', ')}`;
+                    return { output };
+                }
+                profile.colorscheme_index = idx;
+                saveUserProfile(profile);
+                applyColorscheme(idx);
+                output = `<span style="color:var(--accent2)">Applied theme: ${colorschemes[idx].name}</span>`;
+                return { output };
+
+            case 'back':
+                if (previousTerm2View) {
+                    const prev = previousTerm2View;
+                    previousTerm2View = null;
+                    return prev;
+                }
+                if (previousWelcomeHTML) {
+                    document.querySelector('.arch-welcome').innerHTML = previousWelcomeHTML;
+                    previousWelcomeHTML = '';
+                    output = `<span style="color:var(--accent2)">Returned to previous view.</span>`;
+                } else {
+                    showHome();
+                    output = `<span style="color:var(--accent2)">Returned to home.</span>`;
+                }
+                return { output };
+
+            case 'schools': case 'sch':
+                if (typeof SCHOOLS === 'undefined') {
+                    output = 'Schools data not loaded.';
+                    return { output };
+                }
+                let schList = '';
+                for (const [key, school] of Object.entries(SCHOOLS)) {
+                    const mCount = (school.milestones || []).length;
+                    schList += `<span style="color:var(--nvim-green);font-weight:bold">  ${school.name}</span> — ${school.description || ''} <span style="opacity:0.5">(${mCount} milestones)</span><br>`;
+                    if (school.milestones) {
+                        for (const m of school.milestones) {
+                            schList += `<span style="opacity:0.7">    ▸ ${m.name || m.title || ''}</span><br>`;
+                        }
+                    }
+                }
+                output = `<span style="color:var(--nvim-green);font-weight:bold">── 4 Parallel Schools ──</span><br><br>${schList}`;
+                return { output };
+
+            case 'search': case 's':
+                if (args.length === 0) {
+                    output = 'Usage: :search &lt;query&gt;';
+                    return { output };
+                }
+                const query = args.join(' ');
+                if (typeof searchCourses === 'function') {
+                    const results = searchCourses(query);
+                    if (results.length === 0) {
+                        output = `No results for "${query}".`;
+                    } else {
+                        output = `<span style="color:var(--nvim-green);font-weight:bold">── Search: "${query}" ──</span><br>`;
+                        for (const r of results.slice(0, 10)) {
+                            output += `<span style="color:var(--accent2)">:learn ${r.topic} ${r.id}</span> — ${r.title}<br>`;
+                        }
+                    }
+                } else {
+                    output = 'Search not available.';
+                }
+                return { output };
+
+            default:
+                output = `<span style="color:#ff6b6b">Unknown command: :${cmd}</span><br>Type :help for available commands.`;
+                return { output };
+        }
+    }
+
+    // ===== LOCAL COMMAND FALLBACK (term2) =====
+
+    const terminalContent = {
+        'term2': { dir: 'exercises', prompt: 'c-school@exercises:~$ ', lines: [] }
+    };
+
+    function executeLocalCommand(cmd, termContent) {
+        const profile = getUserProfile();
+        let output = '';
+        const parts = cmd.trim().split(' ');
+        const command = parts[0];
+        const args = parts.slice(1);
+
+        switch(command) {
+            case '': break;
+            case 'help':
+                output = 'C-SCHOOL Commands:\n  ls  cd  pwd  whoami  date  echo\n  clear  man  stats  logout  cat  vim';
+                break;
+            case 'stats':
+                output = '=== Statistics ===\nCommands: ' + profile.stats.commands_executed +
+                    '\nTime: ' + Math.floor(profile.stats.time_spent / 60) + 'm ' + (profile.stats.time_spent % 60) + 's';
+                break;
+            case 'whoami': output = profile.username; break;
+            case 'pwd': output = profile.stats.current_dir; break;
+            case 'date': output = new Date().toString(); break;
+            case 'clear': termContent.lines = []; return { output: '' };
+            case 'exit': case 'logout':
+                profile.stats.sessions_started++;
+                profile.stats.login_time = Date.now();
+                saveUserProfile(profile);
+                output = 'logout\nGoodbye!';
+                break;
+            case 'cd':
+                let t = args[0] || '~';
+                if (t === '~' || t === '') profile.stats.current_dir = '~';
+                else if (t === '..') profile.stats.current_dir = profile.stats.current_dir.split('/').slice(0,-1).join('/') || '/';
+                else if (t.startsWith('/')) profile.stats.current_dir = t;
+                else profile.stats.current_dir = profile.stats.current_dir === '~' ? t : profile.stats.current_dir + '/' + t;
+                saveUserProfile(profile);
+                break;
+            case 'echo': output = args.join(' '); break;
+            case 'ls': output = 'Documents/\nDownloads/\nProjects/\nnotes.txt\nREADME.md'; break;
+            case 'man': output = 'Manual: cschool(1) linux(1) school(420) stats(1)'; break;
+            case 'cat': output = args[0] ? 'Contents of ' + args[0] + ':\n...' : 'cat: missing filename'; break;
+            default: output = 'sh: ' + command + ': command not found';
+        }
+        return { output };
+    }
+
+    // ===== MAIN INIT =====
+    document.addEventListener('DOMContentLoaded', async () => {
+        const profile = getUserProfile();
+        profile.stats.sessions_started++;
+        saveUserProfile(profile);
+        applyColorscheme(profile.colorscheme_index);
+
+        // Save original welcome panel HTML for :home/:back
+        const welcomePanel = document.querySelector('.arch-welcome');
+        if (welcomePanel) originalWelcomeHTML = welcomePanel.innerHTML;
+
+        // ── Setup xterm.js for term1 ──
+        const term1El = document.getElementById('term1');
+        const terminal = new Terminal({
+            cursorBlink: true,
+            cursorStyle: 'block',
+            fontSize: 13,
+            fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", monospace',
+            theme: {
+                background: colorschemes[profile.colorscheme_index].bg,
+                foreground: colorschemes[profile.colorscheme_index].fg,
+                cursor: colorschemes[profile.colorscheme_index].green,
+                selectionBackground: colorschemes[profile.colorscheme_index].selection,
+            },
+            allowProposedApi: true,
+            allowTransparency: true,
+        });
+
+        // Remove old prompt elements, install xterm container
+        term1El.querySelector('.term-prompt')?.remove();
+        const term1Input = term1El.querySelector('.term-input');
+        if (term1Input) term1Input.style.display = 'none';
+        const xtermContainer = document.createElement('div');
+        xtermContainer.className = 'xterm-container';
+        term1El.insertBefore(xtermContainer, term1Input);
+        terminal.open(xtermContainer);
+
+        // Fit terminal to container
+        function fitTerminal() {
+            const rect = xtermContainer.getBoundingClientRect();
+            const cols = Math.floor((rect.width - 16) / 8.4); // approximate char width
+            const rows = Math.floor((rect.height - 16) / 18);  // approximate line height
+            if (cols > 0 && rows > 0) terminal.resize(cols, rows);
+        }
+        fitTerminal();
+        window.addEventListener('resize', fitTerminal);
+
+        // Connect via WebSocket
+        let ws = null;
+        let reconnectTimer = null;
+
+        async function connectWS() {
+            try {
+                const res = await fetch(API_BASE + '/api/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: profile.id })
+                });
+                const data = await res.json();
+                const sessionId = data.id;
+
+                const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = protocol + '//' + location.host + '/api/ws/' + sessionId;
+                ws = new WebSocket(wsUrl);
+                ws.binaryType = 'arraybuffer';
+
+                ws.onopen = () => {
+                    terminal.writeln('\x1b[32mC-SCHOOL Terminal v0.2.0\x1b[0m');
+                    terminal.writeln('Connected to real bash shell. Type commands.');
+                    terminal.writeln('');
+
+                    // Send window size
+                    const dims = { cols: terminal.cols, rows: terminal.rows };
+                    ws.send(JSON.stringify(dims));
+                };
+
+                ws.onmessage = (evt) => {
+                    if (evt.data instanceof ArrayBuffer) {
+                        terminal.write(new Uint8Array(evt.data));
+                    } else if (typeof evt.data === 'string') {
+                        terminal.write(evt.data);
+                    }
+                };
+
+                ws.onclose = () => {
+                    terminal.writeln('\r\n\x1b[31m[Disconnected — reconnecting in 3s...]\x1b[0m');
+                    if (reconnectTimer) clearTimeout(reconnectTimer);
+                    reconnectTimer = setTimeout(connectWS, 3000);
+                };
+
+                ws.onerror = () => {
+                    // onclose will fire after onerror
+                };
+
+                // Forward keystrokes to PTY
+                terminal.onData((data) => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(data);
+                    }
+                });
+
+                // Forward resize events
+                terminal.onResize(({ cols, rows }) => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ cols, rows }));
+                    }
+                });
+
+            } catch (e) {
+                terminal.writeln('\x1b[31m[Backend unreachable — retrying in 3s...]\x1b[0m');
+                if (reconnectTimer) clearTimeout(reconnectTimer);
+                reconnectTimer = setTimeout(connectWS, 3000);
+            }
+        }
+
+        connectWS();
+
+        // ── Setup term2 (exercises terminal) ──
+        const term2Input = document.getElementById('term2-input');
+
+        function renderTerm2() {
+            const content = terminalContent['term2'];
+            const display = document.getElementById('term2-prompt');
+            const lines = content.lines.join('<br>');
+            const val = (term2Input?.value || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            display.innerHTML = lines + (lines ? '<br>' : '') + content.prompt + val + '<span class="cursor">_</span>';
+        }
+
+        if (term2Input) {
+            term2Input.addEventListener('input', renderTerm2);
+            term2Input.addEventListener('keydown', async (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const content = terminalContent['term2'];
+                    const cmd = e.target.value.trim();
+                    if (cmd) {
+                        content.lines.push('<span style="color:var(--accent2)">' + content.prompt.replace(/</g,'&lt;') + '</span>' + cmd.replace(/</g,'&lt;'));
+                        if (cmd.startsWith(':')) {
+                            const result = await handleColonCommand(cmd, content);
+                            if (result.output) content.lines.push(result.output);
+                        } else {
+                            const profile = getUserProfile();
+                            profile.stats.commands_executed++;
+                            saveUserProfile(profile);
+                            const result = executeLocalCommand(cmd, content);
+                            if (result.output) content.lines.push(result.output.replace(/\n/g, '<br>'));
+                        }
+                    }
+                    e.target.value = '';
+                    renderTerm2();
+                }
+            });
+            term2Input.addEventListener('focus', () => {
+                document.querySelectorAll('.arch-terminal').forEach(t => t.classList.remove('active'));
+                document.getElementById('term2').classList.add('active');
+            });
+        }
+
+        // Focus xterm on click
+        xtermContainer.addEventListener('click', () => {
+            document.querySelectorAll('.arch-terminal').forEach(t => t.classList.remove('active'));
+            term1El.classList.add('active');
+            terminal.focus();
+        });
+
+        // Initial focus
+        terminal.focus();
+        activeTerminal = 'term1';
+    });
+</script>
+</head>
+<body class="arch-desktop">
+    <!-- Top Bar -->
+    <div class="arch-topbar">
+        <div class="arch-topbar-mobile-toggle" onclick="toggleSidebar()">&#9776;</div>
+        <div class="arch-menu">
+            <span onclick="toggleSettings()">settings.conf</span>
+        </div>
+        <div class="arch-workspaces-bar">
+            <span class="arch-ws active">1</span>
+            <span class="arch-ws">2</span><span class="arch-ws">3</span><span class="arch-ws">4</span><span class="arch-ws">5</span>
+        </div>
+        <div class="arch-systemtray">
+            <span>&#128246;</span><span>&#128266;</span><span>&#128267;</span>
+            <span class="arch-clock">Tue May 06 12:00</span>
+        </div>
+    </div>
+
+    <!-- Desktop Area -->
+    <div class="arch-desktop-area">
+        <!-- Welcome Window -->
+        <div class="arch-welcome">
+            <h1>C-SCHOOL(1)</h1>
+            <p>A futuristic Linux-style programming school.</p>
+            <p style="margin-top: 8px; font-size: 0.75rem; color: var(--arch-dim);">
+                Master low-level programming from bits to kernels.
+            </p>
+            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--arch-border);">
+                <div style="font-size: 0.65rem; color: var(--nvim-green); margin-bottom: 4px;">COMMANDS</div>
+                <div style="font-family: monospace; font-size: 0.65rem; line-height: 1.6;">
+                    <div>ls - list files</div>
+                    <div>cd - change directory</div>
+                    <div>cat - read file</div>
+                    <div>vim - open editor</div>
+                    <div>man - manual pages</div>
+                </div>
+            </div>
+            <div style="margin-top: 12px; font-size: 0.6rem; color: var(--arch-dim);">
+                <span style="cursor:pointer; color: var(--nvim-green);">[w+h/j/k/l] navigate</span> |
+                <span style="cursor:pointer; color: var(--nvim-green);" onclick="toggleSettings()">[w+,] settings</span>
+            </div>
+        </div>
+
+        <!-- Terminal stack -->
+        <div class="arch-terminal-stack">
+            <!-- Main Terminal (xterm.js) -->
+            <div class="arch-terminal active" id="term1">
+                <textarea class="term-input" id="term1-input" spellcheck="false"></textarea>
+                <div class="term-prompt" id="term1-prompt">c-school@academy:~$ <span class="cursor">&#9616;</span></div>
+            </div>
+
+            <!-- Exercises Terminal -->
+            <div class="arch-terminal" id="term2">
+                <textarea class="term-input" id="term2-input" spellcheck="false"></textarea>
+                <div class="term-prompt" id="term2-prompt">c-school@exercises:~$ <span class="cursor">&#9616;</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar -->
+    <nav class="arch-sidebar" id="mobileSidebar">
+        <a href="index.html" class="arch-sidebar-item active" onclick="toggleSidebar()">&#127968; Home</a>
+        <a href="#" class="arch-sidebar-item" onclick="toggleSidebar()">$ Terminal</a>
+        <a href="#" class="arch-sidebar-item" onclick="toggleSidebar()">&#128187; Linux</a>
+    </nav>
+
+<!-- Settings Panel (Hyprland-style) -->
+    <div class="arch-settings" id="settingsPanel">
+        <div class="arch-settings-header">
+            <span>settings.conf</span>
+            <span style="cursor:pointer; opacity:0.6;" onclick="toggleSettings()">[x]</span>
+        </div>
+        <div class="arch-settings-body">
+# C-SCHOOL Configuration
+# Hyprland-style config
+
+[general]
+$TERM = wezterm
+$FILEMANAGER = nnn
+$EDITOR = vim
+$BROWSER = firefox
+$SHELL = zsh
+$DISTRO = arch
+
+[display]
+timing = 50%
+theme = random
+animations = true
+blur = true
+transparent = true
+
+[keybindings]
+$W = SUPER
+
+bind = $W, h, movefocus, l
+bind = $W, j, movefocus, d
+bind = $W, k, movefocus, u
+bind = $W, l, movefocus, r
+
+bind = $W, left, movefocus, l
+bind = $W, down, movefocus, d
+bind = $W, up, movefocus, u
+bind = $W, right, movefocus, r
+
+bind = $W SHIFT, h, movewindow, l
+bind = $W SHIFT, j, movewindow, d
+bind = $W SHIFT, k, movewindow, u
+bind = $W SHIFT, l, movewindow, r
+
+bind = $W CTRL, h, resizeactive, -50
+bind = $W CTRL, j, resizeactive, +50
+bind = $W CTRL, k, resizeactive, +50
+bind = $W CTRL, l, resizeactive, -50
+
+bind = $W, space, togglefloating
+bind = $W, f11, fullscreen
+bind = $W, q, killactive
+bind = $W, TAB, cyclenext
+
+bind = $W, return, exec, wezterm
+bind = $W, v, exec, vim
+bind = $W, f, exec, nnn
+bind = $W, b, exec, firefox
+
+[modes]
+# Hard Mode: Disables mouse, shows timer, no hints
+</div>
+        <div class="hardmode-toggle" id="hardmodeToggle" onclick="toggleHardmode()">
+            <div class="hardmode-btn"></div>
+            <div>
+                <div class="hardmode-label">HARDCORE MODE</div>
+                <div class="hardmode-desc">No mouse, timer, no hints</div>
+            </div>
+        </div>
+
+        <div class="arch-settings-body">
+[colorscheme]
+colorschemes = [
+    "One Dark", "Monokai Pro", "Night Owl", "Tokyo Night",
+    "Dracula", "Gruvbox", "Nord", "Everforest",
+    "Catppuccin", "Rose Pine", "Andromeda", "Hybrid",
+    "Paper", "Pencil", "Tomorrow Night"
+]
+
+[user]
+id =
+
+# End of settings.conf
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script>
+    // Settings functions
+    function toggleSettings() {
+        document.getElementById('settingsPanel').classList.toggle('open');
+    }
+    function toggleSidebar() {
+        document.getElementById('mobileSidebar').classList.toggle('open');
+    }
+    function toggleHardmode() {
+        document.getElementById('hardmodeToggle').classList.toggle('active');
+        localStorage.setItem('c-school-hardmode',
+            document.getElementById('hardmodeToggle').classList.contains('active'));
+    }
+    if (localStorage.getItem('c-school-hardmode') === 'true') {
+        document.getElementById('hardmodeToggle').classList.add('active');
+    }
+
+    // Leader key handling (w + h/j/k/l or ,)
+    let leaderKeyPressed = false;
+    let leaderKeyTimeout;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'w') {
+            leaderKeyPressed = true;
+            if (leaderKeyTimeout) clearTimeout(leaderKeyTimeout);
+            leaderKeyTimeout = setTimeout(() => { leaderKeyPressed = false; }, 1000);
+            return;
+        }
+        if (leaderKeyPressed) {
+            leaderKeyPressed = false;
+            if (leaderKeyTimeout) clearTimeout(leaderKeyTimeout);
+
+            if (['h','j','k','l'].includes(e.key)) {
+                e.preventDefault();
+                const terms = document.querySelectorAll('.arch-terminal');
+                let activeIndex = -1;
+                terms.forEach((t, i) => t.classList.contains('active') && (activeIndex = i));
+                if (activeIndex >= 0) terms[activeIndex].classList.remove('active');
+
+                let targetIdx;
+                if (e.key === 'h' || e.key === 'j') targetIdx = activeIndex > 0 ? activeIndex - 1 : 0;
+                else targetIdx = activeIndex < terms.length - 1 ? activeIndex + 1 : terms.length - 1;
+
+                terms[targetIdx].classList.add('active');
+                const xterm = terms[targetIdx].querySelector('.xterm-container');
+                if (xterm) {
+                    // xterm.js terminal - focus the xterm textarea
+                    const ta = xterm.querySelector('.xterm-helper-textarea') ||
+                               xterm.querySelector('textarea');
+                    if (ta) ta.focus();
+                } else {
+                    terms[targetIdx].querySelector('.term-input')?.focus();
+                }
+            } else if (e.key === ',') {
+                e.preventDefault();
+                toggleSettings();
+            }
+        }
+    });
+    </script>
+</body>
+</html>
